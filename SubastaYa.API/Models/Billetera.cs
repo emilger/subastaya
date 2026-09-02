@@ -1,15 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 
 namespace SubastaYa.API.Models
 {
     public class Billetera
     {
-       [Key]
+        // Identificador de la tabla Billetera
+        [Key]
         public int BilleteraId { get; set; }
         [Required]
-        public int UsuarioId { get; set; }
+        public int UsuarioFK { get; set; }
+
+        // Propiedades de la tabla Billetera
         public decimal SaldoTotal { get; set; }
         public decimal SaldoRetenido { get; set; }
 
