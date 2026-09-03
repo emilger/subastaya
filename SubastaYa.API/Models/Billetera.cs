@@ -1,31 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data;
 
-namespace SubastaYa.API.Models
+namespace SubastaYa.API.Models;
+
+public class Billetera
 {
-    public class Billetera
-    {
-        // Identificador de la tabla Billetera
-        [Key]
-        public int BilleteraId { get; set; }
-        [Required]
-        public int UsuarioFK { get; set; }
+    [Key]
+    public int BilleteraId { get; set; }
 
-        // Propiedades de la tabla Billetera
-        public decimal SaldoTotal { get; set; }
-        public decimal SaldoRetenido { get; set; }
+    [Required]
+    public int UsuarioId { get; set; }
 
-        // Propiedad calculada
-        public decimal SaldoDisponible { get; private set; }
+    public decimal SaldoTotal { get; set; }
+    public decimal SaldoRetenido { get; set; }
 
-        // Clave para Optimistic Locking (Concurrencia)
-        [ConcurrencyCheck] 
-        public int Version { get; set; }
+    // Propiedad calculada en C# (Sin columna física en BD)
+    [NotMapped]
+    public decimal SaldoDisponible { get; private set; }
 
-        // Relación orientada al Usuario
-        [ForeignKey("UsuarioId")]
-        public Usuario? Usuario { get; set; } 
-    }
+    // Concurrencia para Optimistic Locking
+    [ConcurrencyCheck]
+    public int Version { get; set; }
+
+    // Relación de navegación hacia Usuario
+    public Usuario? Usuario { get; set; }
 }
