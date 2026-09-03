@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
+using System;
 namespace SubastaYa.API.Models
 {
     public class TransaccionLedger
