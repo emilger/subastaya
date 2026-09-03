@@ -15,7 +15,6 @@ public class Billetera
     public decimal SaldoRetenido { get; set; }
 
     // Propiedad calculada en C# (Sin columna física en BD)
-    [NotMapped]
     public decimal SaldoDisponible { get; private set; }
 
     // Concurrencia para Optimistic Locking
@@ -23,5 +22,6 @@ public class Billetera
     public int Version { get; set; }
 
     // Relación de navegación hacia Usuario
+    [ForeignKey("UsuarioId")]
     public Usuario? Usuario { get; set; }
 }
