@@ -5,12 +5,14 @@ namespace SubastaYa.API.Models;
 
 public class Billetera
 {
+    // Identificador de la tabla Billetera
     [Key]
     public int BilleteraId { get; set; }
 
     [Required]
-    public int UsuarioId { get; set; }
+    public int UsuarioFK { get; set; }
 
+    // Propiedades de la tabla Billetera
     public decimal SaldoTotal { get; set; }
     public decimal SaldoRetenido { get; set; }
 

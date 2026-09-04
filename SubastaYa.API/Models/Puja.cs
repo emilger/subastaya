@@ -5,15 +5,17 @@ namespace SubastaYa.API.Models;
 
 public class Puja
 {
+    // identificador único de la puja
     [Key]
     public int PujaId { get; set; }
 
     [Required]
-    public int SubastaId { get; set; }
+    public int SubastaFK { get; set; }
 
     [Required]
-    public int CompradorId { get; set; }
+    public int CompradorFK { get; set; }
 
+    // datos relacionados con la fecha y hora de la puja, y el monto de la puja
     [Required]
     public DateTime FechaPuja { get; set; } = DateTime.UtcNow;
 

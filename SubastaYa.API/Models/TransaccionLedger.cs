@@ -11,8 +11,8 @@ namespace SubastaYa.API.Models
         [Key]
         public int TransaccionId { get; set; }
         [Required]
-        public int BilleteraFk { get; set; }
-        public int? SubastaFk { get; set; }
+        public int BilleteraFK { get; set; }
+        public int? SubastaFK { get; set; }
 
         // propiedades de la tabla
         [Required] 

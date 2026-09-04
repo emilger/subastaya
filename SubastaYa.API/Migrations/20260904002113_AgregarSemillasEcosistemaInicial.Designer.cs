@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SubastaYa.API.Data;
@@ -11,9 +12,11 @@ using SubastaYa.API.Data;
 namespace SubastaYa.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260904002113_AgregarSemillasEcosistemaInicial")]
+    partial class AgregarSemillasEcosistemaInicial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,7 +68,7 @@ namespace SubastaYa.API.Migrations
                             Detalle_Json = "",
                             Entidad = "",
                             EntidadId = 1,
-                            Fecha = new DateTime(2026, 9, 4, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(8342),
+                            Fecha = new DateTime(2026, 9, 4, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(5129),
                             UsuarioFK = 1
                         },
                         new
@@ -75,7 +78,7 @@ namespace SubastaYa.API.Migrations
                             Detalle_Json = "",
                             Entidad = "",
                             EntidadId = 2,
-                            Fecha = new DateTime(2026, 9, 4, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(8672),
+                            Fecha = new DateTime(2026, 9, 4, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(5470),
                             UsuarioFK = 1
                         },
                         new
@@ -85,7 +88,7 @@ namespace SubastaYa.API.Migrations
                             Detalle_Json = "",
                             Entidad = "",
                             EntidadId = 3,
-                            Fecha = new DateTime(2026, 9, 4, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(8674),
+                            Fecha = new DateTime(2026, 9, 4, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(5472),
                             UsuarioFK = 1
                         });
                 });
@@ -245,24 +248,6 @@ namespace SubastaYa.API.Migrations
                     b.HasIndex("SubastaFK");
 
                     b.ToTable("Pujas");
-
-                    b.HasData(
-                        new
-                        {
-                            PujaId = 1,
-                            CompradorFK = 3,
-                            FechaPuja = new DateTime(2026, 9, 4, 0, 35, 9, 236, DateTimeKind.Utc).AddTicks(453),
-                            MontoPuja = 30000m,
-                            SubastaFK = 1
-                        },
-                        new
-                        {
-                            PujaId = 2,
-                            CompradorFK = 2,
-                            FechaPuja = new DateTime(2026, 9, 4, 0, 40, 9, 236, DateTimeKind.Utc).AddTicks(1218),
-                            MontoPuja = 45000m,
-                            SubastaFK = 1
-                        });
                 });
 
             modelBuilder.Entity("SubastaYa.API.Models.Subasta", b =>
@@ -331,8 +316,8 @@ namespace SubastaYa.API.Migrations
                             SubastaId = 1,
                             Descripcion = "Laptop de gama alta",
                             Estado = "ACTIVA",
-                            FechaFin = new DateTime(2026, 9, 4, 1, 15, 9, 235, DateTimeKind.Utc).AddTicks(5119),
-                            FechaInicio = new DateTime(2026, 9, 4, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(4792),
+                            FechaFin = new DateTime(2026, 9, 4, 0, 51, 12, 599, DateTimeKind.Utc).AddTicks(1788),
+                            FechaInicio = new DateTime(2026, 9, 4, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(1454),
                             PrecioInicial = 5000m,
                             ProductoFK = 1,
                             PujaMinima = 1000m,
@@ -346,8 +331,8 @@ namespace SubastaYa.API.Migrations
                             SubastaId = 2,
                             Descripcion = "Maquina de escribir vintage en buen estado",
                             Estado = "ACTIVA",
-                            FechaFin = new DateTime(2026, 9, 4, 0, 46, 27, 235, DateTimeKind.Utc).AddTicks(5614),
-                            FechaInicio = new DateTime(2026, 9, 4, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5613),
+                            FechaFin = new DateTime(2026, 9, 4, 0, 22, 30, 599, DateTimeKind.Utc).AddTicks(2280),
+                            FechaInicio = new DateTime(2026, 9, 4, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2279),
                             PrecioInicial = 50m,
                             ProductoFK = 2,
                             PujaMinima = 10m,
@@ -361,8 +346,8 @@ namespace SubastaYa.API.Migrations
                             SubastaId = 3,
                             Descripcion = "Campera de invierno en buen estado",
                             Estado = "PROGRAMADA",
-                            FechaFin = new DateTime(2026, 9, 7, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5634),
-                            FechaInicio = new DateTime(2026, 9, 5, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5621),
+                            FechaFin = new DateTime(2026, 9, 7, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2301),
+                            FechaInicio = new DateTime(2026, 9, 5, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2288),
                             PrecioInicial = 100m,
                             ProductoFK = 3,
                             PujaMinima = 300m,
@@ -376,8 +361,8 @@ namespace SubastaYa.API.Migrations
                             SubastaId = 4,
                             Descripcion = "Autos antiguos en buen estado",
                             Estado = "ACTIVA",
-                            FechaFin = new DateTime(2026, 9, 1, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5637),
-                            FechaInicio = new DateTime(2026, 8, 30, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5636),
+                            FechaFin = new DateTime(2026, 9, 1, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2304),
+                            FechaInicio = new DateTime(2026, 8, 30, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2304),
                             PrecioInicial = 300m,
                             ProductoFK = 4,
                             PujaMinima = 1000m,
@@ -391,8 +376,8 @@ namespace SubastaYa.API.Migrations
                             SubastaId = 5,
                             Descripcion = "Smartphone de última generación",
                             Estado = "ACTIVA",
-                            FechaFin = new DateTime(2026, 9, 3, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5639),
-                            FechaInicio = new DateTime(2026, 9, 2, 0, 45, 9, 235, DateTimeKind.Utc).AddTicks(5639),
+                            FechaFin = new DateTime(2026, 9, 3, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2307),
+                            FechaInicio = new DateTime(2026, 9, 2, 0, 21, 12, 599, DateTimeKind.Utc).AddTicks(2307),
                             PrecioInicial = 800m,
                             ProductoFK = 1,
                             PujaMinima = 200m,
@@ -440,41 +425,6 @@ namespace SubastaYa.API.Migrations
                     b.HasIndex("SubastaFK");
 
                     b.ToTable("TransaccionesLedger");
-
-                    b.HasData(
-                        new
-                        {
-                            TransaccionId = 1,
-                            BilleteraFK = 2,
-                            Monto = 150000m,
-                            TipoTransaccion = "DEPOSITO",
-                            fecha = new DateTime(2026, 9, 3, 0, 45, 9, 236, DateTimeKind.Utc).AddTicks(3743)
-                        },
-                        new
-                        {
-                            TransaccionId = 2,
-                            BilleteraFK = 3,
-                            Monto = 200000m,
-                            TipoTransaccion = "DEPOSITO",
-                            fecha = new DateTime(2026, 9, 3, 0, 45, 9, 236, DateTimeKind.Utc).AddTicks(4073)
-                        },
-                        new
-                        {
-                            TransaccionId = 3,
-                            BilleteraFK = 4,
-                            Monto = 500m,
-                            TipoTransaccion = "DEPOSITO",
-                            fecha = new DateTime(2026, 9, 3, 0, 45, 9, 236, DateTimeKind.Utc).AddTicks(4081)
-                        },
-                        new
-                        {
-                            TransaccionId = 4,
-                            BilleteraFK = 2,
-                            Monto = -45000m,
-                            SubastaFK = 1,
-                            TipoTransaccion = "RETENCION",
-                            fecha = new DateTime(2026, 9, 4, 0, 40, 9, 236, DateTimeKind.Utc).AddTicks(4083)
-                        });
                 });
 
             modelBuilder.Entity("SubastaYa.API.Models.Usuario", b =>
@@ -513,36 +463,36 @@ namespace SubastaYa.API.Migrations
                         {
                             UsuarioId = 1,
                             Alias = "elque vende",
-                            ContrasenaHash = "$2a$11$6nJLDV5/fqJ5Aebnp4nMOOEC3qCR2STWqEf6SesqdN4wtJ7mq5zwO",
+                            ContrasenaHash = "$2a$11$9EfSBCNzg.HtLMolc6UOo.1QUnfaz4Nv2Tt3hCt9RyTD/ADx/hXJW",
                             Email = "vendedor@test.com",
-                            FechaRegistro = new DateTime(2026, 9, 4, 0, 45, 8, 855, DateTimeKind.Utc).AddTicks(8866),
+                            FechaRegistro = new DateTime(2026, 9, 4, 0, 21, 12, 173, DateTimeKind.Utc).AddTicks(6698),
                             NombreUsuario = "Franco"
                         },
                         new
                         {
                             UsuarioId = 2,
                             Alias = "el que compra1",
-                            ContrasenaHash = "$2a$11$EW9YXtYRVCB8oaQMzTtDW.s4cV1/GcNWtXJkl5EzJVuUpamqVMC8O",
+                            ContrasenaHash = "$2a$11$TiroUcoTbmQJ9QSdjExPpuVE97IV.yDiAXjw.C01BL8ckSLJzUfVe",
                             Email = "comprador1@test.com",
-                            FechaRegistro = new DateTime(2026, 9, 4, 0, 45, 9, 29, DateTimeKind.Utc).AddTicks(6351),
+                            FechaRegistro = new DateTime(2026, 9, 4, 0, 21, 12, 391, DateTimeKind.Utc).AddTicks(9287),
                             NombreUsuario = "Juan"
                         },
                         new
                         {
                             UsuarioId = 3,
                             Alias = "el que compra2",
-                            ContrasenaHash = "$2a$11$rr3ujlhIuV.1l1E5p2Gg4O5LyQz/ZLfOPUcb5ysqTu0HQ7LYbj8ES",
+                            ContrasenaHash = "$2a$11$651BTSGIwdCUvaZ2YM1JbOOzVJqsEHsUcKC16W1lKjORmQ817EMAa",
                             Email = "comprador2@test.com",
-                            FechaRegistro = new DateTime(2026, 9, 4, 0, 45, 9, 133, DateTimeKind.Utc).AddTicks(330),
+                            FechaRegistro = new DateTime(2026, 9, 4, 0, 21, 12, 495, DateTimeKind.Utc).AddTicks(618),
                             NombreUsuario = "Pedro"
                         },
                         new
                         {
                             UsuarioId = 4,
                             Alias = "la que compra3",
-                            ContrasenaHash = "$2a$11$foQ0WavbMQyZ7NYRM2gD2eafofyc2lf3I8ZeFU.wz3cHswoN1YPoG",
+                            ContrasenaHash = "$2a$11$2SbtF03Sw9RdrfX3NRXJvOZ8/nYe0K7IsO6b/SYIfZqgpkfaflk8e",
                             Email = "sinfondos@test.com",
-                            FechaRegistro = new DateTime(2026, 9, 4, 0, 45, 9, 234, DateTimeKind.Utc).AddTicks(6466),
+                            FechaRegistro = new DateTime(2026, 9, 4, 0, 21, 12, 598, DateTimeKind.Utc).AddTicks(2500),
                             NombreUsuario = "Maria"
                         });
                 });

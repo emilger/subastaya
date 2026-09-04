@@ -10,9 +10,9 @@ namespace SubastaYa.API.Models
         [Key]
         public int SubastaId { get; set; }
         [Required]
-        public int VendedorId { get; set; }
+        public int VendedorFK { get; set; }
         [Required]
-        public int ProductoId { get; set; }
+        public int ProductoFK { get; set; }
 
         // propiedades de la tabla subasta
         [Required]

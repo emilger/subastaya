@@ -8,7 +8,7 @@ namespace SubastaYa.API.Models
     {
         // Identificador de la tabla Categoria
         [Key]
-        public int Id { get; set; }
+        public int CategoriaId { get; set; }
 
         // Propiedades de la tabla Categoria
         [Required]
