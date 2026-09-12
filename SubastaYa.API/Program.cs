@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.API.Data;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +23,44 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Configurar autenticación JWT
+var jwtSettings = builder.Configuration.GetSection("JwtSettings"); 
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+    };
+});
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
 // Obtener cadena de conexión y registrar DbContext con PostgreSQL e ignorar advertencias dinámicas
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString).ConfigureWarnings(warnings =>warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 var app = builder.Build();
+
+//configuracion de pipelane de HTTP
+if (app.Environment.IsDevelopment()) 
+{ app.UseSwagger(); 
+    app.UseSwaggerUI();
+}
+
 
 // Configure la canalización de solicitudes HTTP.
 if (app.Environment.IsDevelopment())
@@ -32,6 +70,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
