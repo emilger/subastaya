@@ -140,10 +140,10 @@ public class AplicationDbContext : DbContext
             new Puja { PujaId = 2, SubastaId = 1, CompradorId = 2, FechaPuja=DateTime.UtcNow.AddMinutes(-5), MontoPuja = 45000 }
         );
         modelBuilder.Entity<TransaccionLedger>().HasData(
-            new TransaccionLedger{ TransaccionId = 1, BilleteraId = 2,SubastaId = null,TipoTransaccion = "DEPOSITO",Monto = 150000, fecha = DateTime.UtcNow.AddDays(-1) },
-            new TransaccionLedger{ TransaccionId = 2,BilleteraId = 3,SubastaId = null,TipoTransaccion = "DEPOSITO",Monto = 200000, fecha= DateTime.UtcNow.AddDays(-1) },
-            new TransaccionLedger{ TransaccionId = 3,BilleteraId = 4,SubastaId = null,TipoTransaccion = "DEPOSITO",Monto = 500, fecha = DateTime.UtcNow.AddDays(-1) },
-            new TransaccionLedger{ TransaccionId = 4,BilleteraId = 2, SubastaId = 1,TipoTransaccion = "RETENCION",Monto = -45000, fecha = DateTime.UtcNow.AddMinutes(-5) }   
+            new TransaccionLedger{ TransaccionId = 1, BilleteraId = 2,SubastaId = null,TipoTransaccion = "DEPOSITO",Monto = 150000, Fecha = DateTime.UtcNow.AddDays(-1) },
+            new TransaccionLedger{ TransaccionId = 2,BilleteraId = 3,SubastaId = null,TipoTransaccion = "DEPOSITO",Monto = 200000, Fecha= DateTime.UtcNow.AddDays(-1) },
+            new TransaccionLedger{ TransaccionId = 3,BilleteraId = 4,SubastaId = null,TipoTransaccion = "DEPOSITO",Monto = 500, Fecha = DateTime.UtcNow.AddDays(-1) },
+            new TransaccionLedger{ TransaccionId = 4,BilleteraId = 2, SubastaId = 1,TipoTransaccion = "RETENCION",Monto = -45000, Fecha = DateTime.UtcNow.AddMinutes(-5) }   
         );
     }
 }
