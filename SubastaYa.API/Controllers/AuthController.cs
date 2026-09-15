@@ -13,11 +13,11 @@ namespace SubastaYa.API.Controllers
     public class AuthController : ControllerBase
     {
         // Constructor del controlador que recibe el contexto de la base de datos y la configuración
-        private readonly ApplicationDbContext _context;
+        private readonly AplicationDbContext _context;
         private readonly IConfiguration _configuration ;
 
         // Constructor del controlador que recibe el contexto de la base de datos y la configuración
-        public AuthController(ApplicationDbContext context, IConfiguration configuration)
+        public AuthController(AplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;

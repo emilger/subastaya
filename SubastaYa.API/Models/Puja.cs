@@ -8,12 +8,8 @@ public class Puja
     // identificador único de la puja
     [Key]
     public int PujaId { get; set; }
-
-    [Required]
-    public int SubastaFK { get; set; }
-
-    [Required]
-    public int CompradorFK { get; set; }
+    public int SubastaId { get; set; }
+    public int CompradorId { get; set; }
 
     // datos relacionados con la fecha y hora de la puja, y el monto de la puja
     [Required]
@@ -24,8 +20,8 @@ public class Puja
 
     // Propiedades de navegación individuales
     [ForeignKey("SubastaId")]
-    public Subasta? Subasta { get; set; }
+    public Subasta Subasta { get; set; } = null!;
 
     [ForeignKey("CompradorId")]
-    public Usuario? Comprador { get; set; }
+    public Usuario Comprador { get; set; } = null!;
 }

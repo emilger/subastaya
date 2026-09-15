@@ -11,7 +11,7 @@ using SubastaYa.API.Data;
 
 namespace SubastaYa.API.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(AplicationDbContext))]
     [Migration("20260904002113_AgregarSemillasEcosistemaInicial")]
     partial class AgregarSemillasEcosistemaInicial
     {

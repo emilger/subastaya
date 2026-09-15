@@ -27,6 +27,9 @@ namespace SubastaYa.API.Models
         public Billetera? Billetera { get; set; }
         // relacion 1 a muchos con Auditoria_Log
         public ICollection<Auditoria_Log> Auditorias { get; set; } = new List<Auditoria_Log>();
+        // Relación 1 a muchos con Subastas 
+        public ICollection<Subasta> Subastas { get; set; } = new List<Subasta>();
+
 
     }
 }

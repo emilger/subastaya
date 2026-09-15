@@ -9,7 +9,7 @@ namespace SubastaYa.API.Models
         // Identificador de la tabla Auditoria_Log
         [Key]
         public int AuditoriaId { get; set; }
-        public int? UsuarioFK { get; set; }
+        public int UsuarioId { get; set; }
 
         // Propiedades de la tabla Auditoria_Log
         [Required]

@@ -11,8 +11,8 @@ namespace SubastaYa.API.Models
         [Key]
         public int TransaccionId { get; set; }
         [Required]
-        public int BilleteraFK { get; set; }
-        public int? SubastaFK { get; set; }
+        public int BilleteraId { get; set; }
+        public int? SubastaId { get; set; }
 
         // propiedades de la tabla
         [Required] 
@@ -23,11 +23,11 @@ namespace SubastaYa.API.Models
         public DateTime fecha { get; set; } = DateTime.UtcNow;
 
         // relacion con la tabla Billetera
-        [ForeignKey("BilleteraFk")]
-        public Billetera? Billetera { get; set; } = null!;
+        [ForeignKey("BilleteraId")]
+        public Billetera Billetera { get; set; } = null!;
         // relacion con la tabla Subasta 
-        [ForeignKey("SubastaFk")]
-        public Subasta? Subasta { get; set; } = null!;
+        [ForeignKey("SubastaId")]
+        public Subasta Subasta { get; set; } = null;
 
 
     }

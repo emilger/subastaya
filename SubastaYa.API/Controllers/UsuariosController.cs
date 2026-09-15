@@ -10,9 +10,9 @@ namespace SubastaYa.API.Controllers;
 [Route("api/[controller]")]
 public class UsuariosController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly AplicationDbContext _context;
 
-    public UsuariosController(ApplicationDbContext context)
+    public UsuariosController(AplicationDbContext context)
     {
         _context = context;
     }

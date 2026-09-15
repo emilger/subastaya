@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 namespace SubastaYa.API.Models
 {
     public class Subasta
@@ -10,9 +11,9 @@ namespace SubastaYa.API.Models
         [Key]
         public int SubastaId { get; set; }
         [Required]
-        public int VendedorFK { get; set; }
+        public int VendedorId { get; set; }
         [Required]
-        public int ProductoFK { get; set; }
+        public int CategoriaId { get; set; }
 
         // propiedades de la tabla subasta
         [Required]
@@ -40,11 +41,13 @@ namespace SubastaYa.API.Models
 
         // Relación orientada al Vendedor
         [ForeignKey("VendedorId")]
-        public Usuario? Usuario { get; set; }
+        public Usuario Vendedor { get; set; } = null!;
 
         // Relación orientada al Producto
-        [ForeignKey("ProductoId")]
-        public Categoria? Categoria { get; set; }
+        [ForeignKey("CategoriaId")]
+        public Categoria categoria { get; set; } = null!;
 
+        //relación orientada a la puja
+        public ICollection<Puja> Pujas { get; set; } = new List<Puja>();
     }
 }

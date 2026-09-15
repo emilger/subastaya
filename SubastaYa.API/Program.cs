@@ -51,7 +51,7 @@ builder.Services.AddSwaggerGen();
 
 // Obtener cadena de conexión y registrar DbContext con PostgreSQL e ignorar advertencias dinámicas
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<AplicationDbContext>(options =>
     options.UseNpgsql(connectionString).ConfigureWarnings(warnings =>warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 var app = builder.Build();
 
@@ -68,7 +68,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();

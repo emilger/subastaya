@@ -10,7 +10,7 @@ public class Billetera
     public int BilleteraId { get; set; }
 
     [Required]
-    public int UsuarioFK { get; set; }
+    public int UsuarioId { get; set; }
 
     // Propiedades de la tabla Billetera
     public decimal SaldoTotal { get; set; }
@@ -25,5 +25,5 @@ public class Billetera
 
     // Relación de navegación hacia Usuario
     [ForeignKey("UsuarioId")]
-    public Usuario? Usuario { get; set; }
+    public Usuario Usuario { get; set; }
 }
