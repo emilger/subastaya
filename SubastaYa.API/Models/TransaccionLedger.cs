@@ -20,7 +20,7 @@ namespace SubastaYa.API.Models
         [Required]
         public decimal Monto { get; set; }
         [Required] 
-        public DateTime fecha { get; set; } = DateTime.UtcNow;
+        public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
         // relacion con la tabla Billetera
         [ForeignKey("BilleteraId")]

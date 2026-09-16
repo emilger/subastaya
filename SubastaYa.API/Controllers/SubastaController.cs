@@ -7,6 +7,7 @@ using SubastaYa.API.DTOs;
 using SubastaYa.API.Models;
 namespace SubastaYa.API.Controllers
 {
+    // Controller para manejar operaciones relacionadas con las subastas.
     [ApiController]
     [Route("api/[controller]")]
     public class SubastaController : ControllerBase

@@ -25,5 +25,5 @@ public class Billetera
 
     // Relación de navegación hacia Usuario
     [ForeignKey("UsuarioId")]
-    public Usuario Usuario { get; set; }
+    public Usuario Usuario { get; set; }= null!;
 }
