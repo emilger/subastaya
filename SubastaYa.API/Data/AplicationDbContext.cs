@@ -100,10 +100,22 @@ public class AplicationDbContext : DbContext
 
         // Carga de datos semillas sin dependencias
         modelBuilder.Entity<Categoria>().HasData(
-            new Categoria { CategoriaId = 1, Nombre = "Tecnologia", UrlIcono = "bi-cpu" },
-            new Categoria { CategoriaId = 2, Nombre = "Coleccionables", UrlIcono = "bi-star" },
-            new Categoria { CategoriaId = 3, Nombre = "Indumentaria", UrlIcono = "bi-tshirt" },
-            new Categoria { CategoriaId = 4, Nombre = "Vehiculos", UrlIcono = "bi-car" }
+            new Categoria { 
+                CategoriaId = 1,
+                Nombre = "Tecnologia", 
+                UrlIcono = "bi-cpu" },
+            new Categoria { 
+                CategoriaId = 2, 
+                Nombre = "Coleccionables",
+                UrlIcono = "bi-star" },
+            new Categoria {
+                CategoriaId = 3, 
+                Nombre = "Indumentaria",
+                UrlIcono = "bi-tshirt" },
+            new Categoria { 
+                CategoriaId = 4,
+                Nombre = "Vehiculos",
+                UrlIcono = "bi-car" }
         );
 
         modelBuilder.Entity<Usuario>().HasData(
@@ -147,10 +159,30 @@ public class AplicationDbContext : DbContext
 
         // Carga de datos semillas con dependencias directas
         modelBuilder.Entity<Billetera>().HasData(
-            new Billetera { BilleteraId = 1, UsuarioId = 1, SaldoTotal = 0, SaldoRetenido = 0, Version = 1 },
-            new Billetera { BilleteraId = 2, UsuarioId = 2, SaldoTotal = 150000, SaldoRetenido = 45000, Version = 1 },
-            new Billetera { BilleteraId = 3, UsuarioId = 3, SaldoTotal = 200000, SaldoRetenido = 0, Version = 1 },
-            new Billetera { BilleteraId = 4, UsuarioId = 4, SaldoTotal = 500, SaldoRetenido = 0, Version = 1 }
+            new Billetera { 
+                BilleteraId = 1, 
+                UsuarioId = 1, 
+                SaldoTotal = 0, 
+                SaldoRetenido = 0, 
+                Version = 1 },
+            new Billetera { 
+                BilleteraId = 2, 
+                UsuarioId = 2, 
+                SaldoTotal = 150000, 
+                SaldoRetenido = 45000, 
+                Version = 1 },
+            new Billetera { 
+                BilleteraId = 3,
+                UsuarioId = 3, 
+                SaldoTotal = 200000, 
+                SaldoRetenido = 0, 
+                Version = 1 },
+            new Billetera { 
+                BilleteraId = 4, 
+                UsuarioId = 4, 
+                SaldoTotal = 500,
+                SaldoRetenido = 0, 
+                Version = 1 }
         );
 
         modelBuilder.Entity<Subasta>().HasData(
@@ -206,7 +238,7 @@ public class AplicationDbContext : DbContext
                CategoriaId = 4,
                Titulo = "Autos antiguos",
                Descripcion = "Autos antiguos en buen estado",
-               Estado = "ACTIVA",
+               Estado = "FINALIZADA",
                UrlImagen = "https://picsum.photos/id/133/600/400",
                PrecioInicial = 300,
                PujaMinima = 1000,
@@ -221,7 +253,7 @@ public class AplicationDbContext : DbContext
                CategoriaId = 1,
                Titulo = "Smartphone",
                Descripcion = "Smartphone de última generación",
-               Estado = "ACTIVA",
+               Estado = "FINALIZADA",
                UrlImagen = "https://picsum.photos/id/3/600/400",
                PrecioInicial = 800,
                PujaMinima = 200,
@@ -232,22 +264,77 @@ public class AplicationDbContext : DbContext
         );
 
         modelBuilder.Entity<Auditoria_Log>().HasData(
-            new Auditoria_Log { AuditoriaId = 1, UsuarioId = 1, Entidad = "SUBASTA", EntidadId = 1, Accion = "Creación de subasta", Detalle_Json = "{}", Fecha = DateTime.UtcNow },
-            new Auditoria_Log { AuditoriaId = 2, UsuarioId = 1, Entidad = "SUBASTA", EntidadId = 2, Accion = "Creación de subasta", Detalle_Json = "{}", Fecha = DateTime.UtcNow },
-            new Auditoria_Log { AuditoriaId = 3, UsuarioId = 1, Entidad = "SUBASTA", EntidadId = 3, Accion = "Creación de subasta", Detalle_Json = "{}", Fecha = DateTime.UtcNow }
+            new Auditoria_Log { 
+                AuditoriaId = 1,
+                UsuarioId = 1,
+                Entidad = "SUBASTA",
+                EntidadId = 1, 
+                Accion = "CREAR_SUBASTA",
+                Detalle_Json = "{}", 
+                Fecha = DateTime.UtcNow },
+            new Auditoria_Log { 
+                AuditoriaId = 2,
+                UsuarioId = 1
+                , Entidad = "SUBASTA",
+                EntidadId = 2,
+                Accion = "CREAR_SUBASTA", 
+                Detalle_Json = "{}", 
+                Fecha = DateTime.UtcNow },
+            new Auditoria_Log { 
+                AuditoriaId = 3,
+                UsuarioId = 1,
+                Entidad = "SUBASTA",
+                EntidadId = 3, 
+                Accion = "CREAR_SUBASTA", 
+                Detalle_Json = "{}",
+                Fecha = DateTime.UtcNow }
         );
 
         // Carga de datos semillas con dependencias indirectas
         modelBuilder.Entity<Puja>().HasData(
-            new Puja { PujaId = 1, SubastaId = 1, CompradorId = 3, FechaPuja = DateTime.UtcNow.AddMinutes(-10), MontoPuja = 30000 },
-            new Puja { PujaId = 2, SubastaId = 1, CompradorId = 2, FechaPuja = DateTime.UtcNow.AddMinutes(-5), MontoPuja = 45000 }
+            new Puja { 
+                PujaId = 1, 
+                SubastaId = 1, 
+                CompradorId = 3, 
+                FechaPuja = DateTime.UtcNow.AddMinutes(-10), 
+                MontoPuja = 30000 },
+            new Puja { 
+                PujaId = 2, 
+                SubastaId = 1, 
+                CompradorId = 2, 
+                FechaPuja = DateTime.UtcNow.AddMinutes(-5), 
+                MontoPuja = 45000 }
         );
 
         modelBuilder.Entity<TransaccionLedger>().HasData(
-            new TransaccionLedger { TransaccionId = 1, BilleteraId = 2, SubastaId = null, TipoTransaccion = "DEPOSITO", Monto = 150000, Fecha = DateTime.UtcNow.AddDays(-1) },
-            new TransaccionLedger { TransaccionId = 2, BilleteraId = 3, SubastaId = null, TipoTransaccion = "DEPOSITO", Monto = 200000, Fecha = DateTime.UtcNow.AddDays(-1) },
-            new TransaccionLedger { TransaccionId = 3, BilleteraId = 4, SubastaId = null, TipoTransaccion = "DEPOSITO", Monto = 500, Fecha = DateTime.UtcNow.AddDays(-1) },
-            new TransaccionLedger { TransaccionId = 4, BilleteraId = 2, SubastaId = 1, TipoTransaccion = "RETENCION", Monto = -45000, Fecha = DateTime.UtcNow.AddMinutes(-5) }
+            new TransaccionLedger { 
+                TransaccionId = 1, 
+                BilleteraId = 2,
+                SubastaId = null,
+                TipoTransaccion = "DEPOSITO", 
+                Monto = 150000, 
+                Fecha = DateTime.UtcNow.AddDays(-1) },
+            new TransaccionLedger {
+                TransaccionId = 2, 
+                BilleteraId = 3,
+                SubastaId = null, 
+                TipoTransaccion = "DEPOSITO",
+                Monto = 200000,
+                Fecha = DateTime.UtcNow.AddDays(-1) },
+            new TransaccionLedger { 
+                TransaccionId = 3, 
+                BilleteraId = 4, 
+                SubastaId = null, 
+                TipoTransaccion = "DEPOSITO",
+                Monto = 500,
+                Fecha = DateTime.UtcNow.AddDays(-1) },
+            new TransaccionLedger { 
+                TransaccionId = 4, 
+                BilleteraId = 2,
+                SubastaId = 1,
+                TipoTransaccion = "RETENCION", 
+                Monto = -45000,
+                Fecha = DateTime.UtcNow.AddMinutes(-5) }
         );
     }
 }

@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using SubastaYa.API.Data;
 using SubastaYa.API.Services;
+using SubastaYa.API.Workers;
 using System.Text;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
-
+// Agregar el servicio de fondo para cerrar subastas 
+builder.Services.AddHostedService<SubastaFinalizacionWorker>();
 // Agregue servicios al contenedor.
 builder.Services.AddScoped<PujaAutomaticaService>();
 builder.Services.AddControllers();
@@ -45,7 +45,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 });
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
