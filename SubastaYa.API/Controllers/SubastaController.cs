@@ -1,15 +1,14 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.API.Data;
 using SubastaYa.API.DTOs;
 using SubastaYa.API.Models;
+
 namespace SubastaYa.API.Controllers
 {
     // Controller para manejar operaciones relacionadas con las subastas.
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/auctions")]
     public class SubastaController : ControllerBase
     {
         private readonly AplicationDbContext _context;
@@ -19,155 +18,152 @@ namespace SubastaYa.API.Controllers
             _context = context;
         }
 
-        //implementacion de filtro de subastas por categoria, estado o termino de busqueda
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SubastaResponseDto>>> GetSubastas(
-            [FromQuery] string? estado,
-            [FromQuery] int? categoria,
-            [FromQuery] string? Busqueda
-            )
+        /// <summary>
+        /// Procesa una oferta (puja) en tiempo real con reglas de garantía (Escrow), Anti-sniping y Concurrencia.
+        /// </summary>
+        [HttpPost("{id}/bids")]
+        public async Task<IActionResult> RealizarPuja(int id, [FromBody] CrearPujaDto dto)
         {
-            var query = _context.Subastas
-                .Include(s => s.categoria)
-                .Include(s => s.Vendedor)
-                .Include(s => s.Pujas)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(estado))
+            // 1. Iniciar transacción atómica
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                query = query.Where(s => s.Estado == estado);
+                var ahora = DateTime.UtcNow;
+
+                // Cargar la subasta junto con sus pujas existentes
+                var subasta = await _context.Subastas
+                    .Include(s => s.Pujas)
+                    .FirstOrDefaultAsync(s => s.SubastaId == id);
+
+                if (subasta == null)
+                    return NotFound(new { mensaje = "La subasta no existe." });
+
+                // Validar estado y ventana de tiempo
+                if (subasta.Estado != "ACTIVA" || subasta.FechaFin <= ahora)
+                    return BadRequest(new { mensaje = "La subasta no está activa o ya ha finalizado." });
+
+                // Validar que el comprador no sea el propio vendedor
+                if (subasta.VendedorId == dto.CompradorId)
+                    return BadRequest(new { mensaje = "El vendedor no puede ofertar en su propia subasta." });
+
+                // 2. Determinar la puja más alta actual
+                var pujaAnterior = subasta.Pujas
+                    .OrderByDescending(p => p.MontoPuja)
+                    .FirstOrDefault();
+
+                decimal montoMinimoRequerido = pujaAnterior != null
+                    ? pujaAnterior.MontoPuja + subasta.PujaMinima
+                    : subasta.PrecioInicial;
+
+                if (dto.MontoPuja < montoMinimoRequerido)
+                {
+                    return BadRequest(new
+                    {
+                        mensaje = $"El monto debe ser de al menos ${montoMinimoRequerido} (Puja actual + incremento mínimo)."
+                    });
+                }
+
+                // 3. Validar y actualizar Billetera del Nuevo Comprador
+                var billeteraNuevoComprador = await _context.Billeteras
+                    .FirstOrDefaultAsync(b => b.UsuarioId == dto.CompradorId);
+
+                if (billeteraNuevoComprador == null)
+                    return NotFound(new { mensaje = "Billetera del comprador no encontrada." });
+
+                if (billeteraNuevoComprador.SaldoDisponible < dto.MontoPuja)
+                    return BadRequest(new { mensaje = "Saldo disponible insuficiente para respaldar esta puja en garantía (Escrow)." });
+
+                // Congelar el nuevo saldo
+                billeteraNuevoComprador.SaldoRetenido += dto.MontoPuja;
+                billeteraNuevoComprador.Version++;
+
+                _context.TransaccionesLedger.Add(new TransaccionLedger
+                {
+                    BilleteraId = billeteraNuevoComprador.BilleteraId,
+                    SubastaId = subasta.SubastaId,
+                    TipoTransaccion = "RETENCION_PUJA",
+                    Monto = -dto.MontoPuja,
+                    Fecha = ahora
+                });
+
+                // 4. Liberar garantía del Postor Anterior (si existe)
+                if (pujaAnterior != null)
+                {
+                    var billeteraAnterior = await _context.Billeteras
+                        .FirstOrDefaultAsync(b => b.UsuarioId == pujaAnterior.CompradorId);
+
+                    if (billeteraAnterior != null)
+                    {
+                        billeteraAnterior.SaldoRetenido -= pujaAnterior.MontoPuja;
+                        billeteraAnterior.Version++;
+
+                        _context.TransaccionesLedger.Add(new TransaccionLedger
+                        {
+                            BilleteraId = billeteraAnterior.BilleteraId,
+                            SubastaId = subasta.SubastaId,
+                            TipoTransaccion = "LIBERACION_SUPERADO",
+                            Monto = pujaAnterior.MontoPuja,
+                            Fecha = ahora
+                        });
+                    }
+                }
+
+                // 5. Registrar la Nueva Puja
+                var nuevaPuja = new Puja
+                {
+                    SubastaId = subasta.SubastaId,
+                    CompradorId = dto.CompradorId,
+                    MontoPuja = dto.MontoPuja,
+                    FechaPuja = ahora
+                };
+                _context.Pujas.Add(nuevaPuja);
+
+                // 6. Aplicar Regla Anti-Sniping (Extensión de tiempo)
+                bool tiempoExtendido = false;
+                var tiempoRestante = subasta.FechaFin - ahora;
+
+                if (tiempoRestante.TotalSeconds <= 60)
+                {
+                    subasta.FechaFin = subasta.FechaFin.AddMinutes(2);
+                    tiempoExtendido = true;
+
+                    _context.Auditorias.Add(new Auditoria_Log
+                    {
+                        Entidad = "SUBASTA",
+                        EntidadId = subasta.SubastaId,
+                        Accion = "EXTENSION_ANTI_SNIPING",
+                        UsuarioId = dto.CompradorId,
+                        Detalle_Json = $"{{\"mensaje\": \"Fecha de fin extendida 2 minutos por oferta de último segundo.\", \"nuevaFechaFin\": \"{subasta.FechaFin}\"}}",
+                        Fecha = ahora
+                    });
+                }
+
+                // Incrementar versión de concurrencia en la subasta
+                subasta.Version++;
+
+                // 7. Guardar cambios y confirmar transacción
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new
+                {
+                    mensaje = "Puja registrada exitosamente.",
+                    pujaId = nuevaPuja.PujaId,
+                    monto = nuevaPuja.MontoPuja,
+                    tiempoExtendido = tiempoExtendido,
+                    nuevaFechaFin = subasta.FechaFin
+                });
             }
-
-            if (categoria.HasValue)
+            catch (DbUpdateConcurrencyException)
             {
-
-                query = query.Where(s => s.CategoriaId == categoria.Value);
+                await transaction.RollbackAsync();
+                return Conflict(new { mensaje = "Hubo un conflicto de concurrencia. Otro usuario realizó una oferta al mismo tiempo. Reintente." });
             }
-            if (!string.IsNullOrEmpty(Busqueda))
+            catch (Exception ex)
             {
-                query = query.Where(s => s.Titulo.ToLower().Contains(Busqueda.ToLower()) ||
-                                         s.Descripcion.ToLower().Contains(Busqueda.ToLower()));
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { mensaje = "Error interno al procesar la puja.", detalle = ex.Message });
             }
-
-            var response = await query.Select(s => new SubastaResponseDto
-            {
-                Id = s.SubastaId,
-                Titulo = s.Titulo,
-                Descripcion = s.Descripcion,
-                UrlImagen = s.UrlImagen,
-                PrecioBase = s.PrecioInicial,
-                IncrementoMinimo = s.PujaMinima,
-                FechaInicio = s.FechaInicio,
-                FechaFin = s.FechaFin,
-                Estado = s.Estado,
-                CategoriaId = s.CategoriaId,
-                NombreCategoria = s.categoria != null ? s.categoria.Nombre : string.Empty,
-                VendedorId = s.VendedorId,
-                NombreVendedor = s.Vendedor != null ? s.Vendedor.NombreUsuario : string.Empty,
-                OfertaMasAlta = s.Pujas.Any() ? s.Pujas.Max(p => p.MontoPuja) : s.PrecioInicial,
-                CantidadOfertas = s.Pujas.Count
-            }).ToListAsync();
-            return Ok(response);
-        }
-
-        // GET: api/subastas/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SubastaResponseDto>> GetSubasta(int id)
-        {
-            var subasta = await _context.Subastas
-                .Include(s => s.categoria)
-                .Include(s => s.Vendedor)
-                .Include(s => s.Pujas)
-                .FirstOrDefaultAsync(s => s.SubastaId == id);
-
-            if (subasta == null)
-            {
-                return NotFound(new { mensaje = "Subasta no encontrada." });
-            }
-
-            var response = new SubastaResponseDto
-            {
-                Id = subasta.SubastaId,
-                Titulo = subasta.Titulo,
-                Descripcion = subasta.Descripcion,
-                UrlImagen = subasta.UrlImagen,
-                PrecioBase = subasta.PrecioInicial,
-                IncrementoMinimo = subasta.PujaMinima,
-                FechaInicio = subasta.FechaInicio,
-                FechaFin = subasta.FechaFin,
-                Estado = subasta.Estado,
-                CategoriaId = subasta.CategoriaId,
-                NombreCategoria = subasta.categoria != null ? subasta.categoria.Nombre : string.Empty,
-                VendedorId = subasta.VendedorId,
-                NombreVendedor = subasta.Vendedor != null ? subasta.Vendedor.NombreUsuario : string.Empty,
-                OfertaMasAlta = subasta.Pujas.Any() ? subasta.Pujas.Max(p => p.MontoPuja) : subasta.PrecioInicial,
-                CantidadOfertas = subasta.Pujas.Count
-            };
-
-            return Ok(response);
-        }
-
-        // POST: api/subastas
-        // Requiere token JWT. Extrae el VendedorId del usuario logueado.
-        [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<SubastaResponseDto>> CrearSubasta([FromBody] CrearSubastaDto dto)
-        {
-            if (dto.FechaFin <= dto.FechaInicio)
-            {
-                return BadRequest(new { mensaje = "La fecha de finalización debe ser posterior a la fecha de inicio." });
-            }
-
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                 ?? User.FindFirst("sub")?.Value;
-
-            if (string.IsNullOrEmpty(usuarioIdClaim) || !int.TryParse(usuarioIdClaim, out int vendedorId))
-            {
-                return Unauthorized(new { mensaje = "Token no válido o sin identificación de usuario." });
-            }
-
-            var categoriaExiste = await _context.Categorias.AnyAsync(c => c.CategoriaId == dto.CategoriaId);
-            if (!categoriaExiste)
-            {
-                return BadRequest(new { mensaje = "La categoría especificada no existe." });
-            }
-
-            string estadoInicial = dto.FechaInicio <= DateTime.UtcNow ? "ACTIVA" : "PROGRAMADA";
-
-            var nuevaSubasta = new Subasta
-            {
-                VendedorId = vendedorId,
-                CategoriaId = dto.CategoriaId,
-                Titulo = dto.Titulo,
-                Descripcion = dto.Descripcion,
-                UrlImagen = dto.UrlImagen,
-                PrecioInicial = dto.PrecioBase,
-                PujaMinima = dto.IncrementoMinimo,
-                FechaInicio = dto.FechaInicio.ToUniversalTime(),
-                FechaFin = dto.FechaFin.ToUniversalTime(),
-                Estado = estadoInicial,
-                Version = 1
-            };
-
-            _context.Subastas.Add(nuevaSubasta);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetSubasta), new { id = nuevaSubasta.SubastaId }, new SubastaResponseDto
-            {
-                Id = nuevaSubasta.SubastaId,
-                Titulo = nuevaSubasta.Titulo,
-                Descripcion = nuevaSubasta.Descripcion,
-                UrlImagen = nuevaSubasta.UrlImagen,
-                PrecioBase = nuevaSubasta.PrecioInicial,
-                IncrementoMinimo = nuevaSubasta.PujaMinima,
-                FechaInicio = nuevaSubasta.FechaInicio,
-                FechaFin = nuevaSubasta.FechaFin,
-                Estado = nuevaSubasta.Estado,
-                CategoriaId = nuevaSubasta.CategoriaId,
-                VendedorId = nuevaSubasta.VendedorId,
-                OfertaMasAlta = nuevaSubasta.PrecioInicial,
-                CantidadOfertas = 0
-            });
         }
     }
 }
