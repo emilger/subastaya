@@ -17,6 +17,7 @@ public class AplicationDbContext : DbContext
     public DbSet<TransaccionLedger> TransaccionesLedger { get; set; } = null!;
     public DbSet<Auditoria_Log> Auditorias { get; set; } = null!;
 
+    public DbSet<PujaAutomatica> PujasAutomaticas { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -82,6 +83,20 @@ public class AplicationDbContext : DbContext
             .WithMany(u => u.Auditorias)
             .HasForeignKey(a => a.UsuarioId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Subasta <-> PujaAutomatica (1 a N)
+        modelBuilder.Entity<PujaAutomatica>()
+            .HasOne(pa => pa.Subasta)
+            .WithMany()
+            .HasForeignKey(pa => pa.SubastaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Usuario <-> PujaAutomatica (1 a N)
+        modelBuilder.Entity<PujaAutomatica>()
+            .HasOne(pa => pa.Comprador)
+            .WithMany()
+            .HasForeignKey(pa => pa.CompradorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Carga de datos semillas sin dependencias
         modelBuilder.Entity<Categoria>().HasData(

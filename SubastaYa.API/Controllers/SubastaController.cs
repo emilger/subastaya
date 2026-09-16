@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SubastaYa.API.Data;
 using SubastaYa.API.DTOs;
 using SubastaYa.API.Models;
+using SubastaYa.API.Services;
 
 namespace SubastaYa.API.Controllers
 {
@@ -12,10 +13,12 @@ namespace SubastaYa.API.Controllers
     public class SubastaController : ControllerBase
     {
         private readonly AplicationDbContext _context;
+        private readonly PujaAutomaticaService _autoPujaService;
 
-        public SubastaController(AplicationDbContext context)
+        public SubastaController(AplicationDbContext context, PujaAutomaticaService autoPujaService)
         {
             _context = context;
+            _autoPujaService = autoPujaService;
         }
 
         /// <summary>
@@ -86,20 +89,20 @@ namespace SubastaYa.API.Controllers
                     Fecha = ahora
                 });
 
-                // 4. Liberar garantía del Postor Anterior (si existe)
+                // 4. Liberar saldo del postor anterior (si existe)
                 if (pujaAnterior != null)
                 {
-                    var billeteraAnterior = await _context.Billeteras
+                    var billeteraAnteriorComprador = await _context.Billeteras
                         .FirstOrDefaultAsync(b => b.UsuarioId == pujaAnterior.CompradorId);
 
-                    if (billeteraAnterior != null)
+                    if (billeteraAnteriorComprador != null)
                     {
-                        billeteraAnterior.SaldoRetenido -= pujaAnterior.MontoPuja;
-                        billeteraAnterior.Version++;
+                        billeteraAnteriorComprador.SaldoRetenido -= pujaAnterior.MontoPuja;
+                        billeteraAnteriorComprador.Version++;
 
                         _context.TransaccionesLedger.Add(new TransaccionLedger
                         {
-                            BilleteraId = billeteraAnterior.BilleteraId,
+                            BilleteraId = billeteraAnteriorComprador.BilleteraId,
                             SubastaId = subasta.SubastaId,
                             TipoTransaccion = "LIBERACION_SUPERADO",
                             Monto = pujaAnterior.MontoPuja,
@@ -108,7 +111,7 @@ namespace SubastaYa.API.Controllers
                     }
                 }
 
-                // 5. Registrar la Nueva Puja
+                // 5. Registrar la nueva puja
                 var nuevaPuja = new Puja
                 {
                     SubastaId = subasta.SubastaId,
@@ -118,52 +121,99 @@ namespace SubastaYa.API.Controllers
                 };
                 _context.Pujas.Add(nuevaPuja);
 
-                // 6. Aplicar Regla Anti-Sniping (Extensión de tiempo)
-                bool tiempoExtendido = false;
-                var tiempoRestante = subasta.FechaFin - ahora;
-
-                if (tiempoRestante.TotalSeconds <= 60)
+                // 6. Regla Anti-Sniping
+                if ((subasta.FechaFin - ahora).TotalSeconds <= 60)
                 {
                     subasta.FechaFin = subasta.FechaFin.AddMinutes(2);
-                    tiempoExtendido = true;
-
                     _context.Auditorias.Add(new Auditoria_Log
                     {
-                        Entidad = "SUBASTA",
+                        UsuarioId = dto.CompradorId,
+                        Entidad = "Subasta",
                         EntidadId = subasta.SubastaId,
                         Accion = "EXTENSION_ANTI_SNIPING",
-                        UsuarioId = dto.CompradorId,
-                        Detalle_Json = $"{{\"mensaje\": \"Fecha de fin extendida 2 minutos por oferta de último segundo.\", \"nuevaFechaFin\": \"{subasta.FechaFin}\"}}",
+                        Detalle_Json = "Extensión de 2 minutos aplicada por puja en el último minuto.",
                         Fecha = ahora
                     });
                 }
 
-                // Incrementar versión de concurrencia en la subasta
                 subasta.Version++;
 
-                // 7. Guardar cambios y confirmar transacción
+                // Persistir cambios y confirmar transacción
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                // 7. Evaluar motor de pujas automáticas tras completar la oferta manual
+                await _autoPujaService.ProcesarPujasAutomaticasAsync(subasta.SubastaId, ahora);
+
                 return Ok(new
                 {
-                    mensaje = "Puja registrada exitosamente.",
-                    pujaId = nuevaPuja.PujaId,
-                    monto = nuevaPuja.MontoPuja,
-                    tiempoExtendido = tiempoExtendido,
-                    nuevaFechaFin = subasta.FechaFin
+                    mensaje = "Puja realizada con éxito.",
+                    montoPuja = dto.MontoPuja,
+                    fechaFin = subasta.FechaFin
                 });
             }
             catch (DbUpdateConcurrencyException)
             {
                 await transaction.RollbackAsync();
-                return Conflict(new { mensaje = "Hubo un conflicto de concurrencia. Otro usuario realizó una oferta al mismo tiempo. Reintente." });
+                return Conflict(new { mensaje = "Conflicto de concurrencia: otra oferta o actualización de billetera ocurrió simultáneamente. Intente nuevamente." });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return StatusCode(500, new { mensaje = "Error interno al procesar la puja.", detalle = ex.Message });
+                return StatusCode(500, new { mensaje = "Ocurrió un error inesperado al procesar la puja.", detalle = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Configura o actualiza la puja automática (Proxy Bidding) para un usuario en una subasta.
+        /// </summary>
+        [HttpPost("{id}/auto-bids")]
+        public async Task<IActionResult> ConfigurarPujaAutomatica(int id, [FromBody] CrearPujaAutomaticaDto dto)
+        {
+            var ahora = DateTime.UtcNow;
+
+            var subasta = await _context.Subastas.FindAsync(id);
+            if (subasta == null)
+                return NotFound(new { mensaje = "La subasta no existe." });
+
+            if (subasta.Estado != "ACTIVA" || subasta.FechaFin <= ahora)
+                return BadRequest(new { mensaje = "La subasta no está activa o ya ha finalizado." });
+
+            if (subasta.VendedorId == dto.CompradorId)
+                return BadRequest(new { mensaje = "El vendedor no puede configurar pujas automáticas en su propia subasta." });
+
+            // Buscar si ya existe una configuración para esta subasta y comprador
+            var autoPujaExistente = await _context.PujasAutomaticas
+                .FirstOrDefaultAsync(pa => pa.SubastaId == id && pa.CompradorId == dto.CompradorId);
+
+            if (autoPujaExistente != null)
+            {
+                autoPujaExistente.MontoMaximo = dto.MontoMaximo;
+                autoPujaExistente.Activa = true;
+                autoPujaExistente.FechaConfiguracion = ahora;
+            }
+            else
+            {
+                _context.PujasAutomaticas.Add(new PujaAutomatica
+                {
+                    SubastaId = id,
+                    CompradorId = dto.CompradorId,
+                    MontoMaximo = dto.MontoMaximo,
+                    Activa = true,
+                    FechaConfiguracion = ahora
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Disparar inmediatamente el motor por si esta configuración activa una contraoferta
+            await _autoPujaService.ProcesarPujasAutomaticasAsync(id, ahora);
+
+            return Ok(new
+            {
+                mensaje = "Puja automática configurada correctamente.",
+                montoMaximo = dto.MontoMaximo
+            });
         }
     }
 }

@@ -1,16 +1,17 @@
-using Microsoft.EntityFrameworkCore;
-using SubastaYa.API.Data;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using SubastaYa.API.Data;
+using SubastaYa.API.Services;
+using System.Text;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Agregue servicios al contenedor.
-
+builder.Services.AddScoped<PujaAutomaticaService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
