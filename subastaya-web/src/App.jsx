@@ -1,58 +1,72 @@
 // src/App.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
-import { Billetera } from './components/Billetera';
+import Navbar from './components/Navbar';
+import { Billetera } from './components/Billetera'; // El componente en el que trabaja tu compañero
 
-function App() {
-  const [token, setToken] = useState(localStorage.getItem('token'));
+const TIMEOUT_MINUTOS = 5; 
 
-  const handleLoginSuccess = () => {
-    setToken(localStorage.getItem('token'));
-  };
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Control de vista: 'catalogo' o 'billetera'
+  const [vistaActual, setVistaActual] = useState('catalogo');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
-    setToken(null);
+    localStorage.removeItem('lastActiveTime');
+    setIsAuthenticated(false);
   };
 
-  // 1. Si NO hay token: Muestra pantalla de Login
-  if (!token) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
-  }
+  const handleLoginSuccess = () => {
+    localStorage.setItem('lastActiveTime', Date.now().toString());
+    setIsAuthenticated(true);
+  };
 
-  // 2. Si SÍ hay token: Muestra la pantalla principal con la Billetera
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const lastActive = localStorage.getItem('lastActiveTime');
+    const now = Date.now();
+    const limiteMs = TIMEOUT_MINUTOS * 60 * 1000;
+
+    if (token) {
+      if (lastActive && (now - Number(lastActive) > limiteMs)) {
+        handleLogout();
+      } else {
+        localStorage.setItem('lastActiveTime', now.toString());
+        setIsAuthenticated(true);
+      }
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        paddingBottom: '15px', 
-        borderBottom: '2px solid #eee',
-        marginBottom: '20px' 
-      }}>
-        <h2>SubastaYa - Panel Principal</h2>
-        <button 
-          onClick={handleLogout} 
-          style={{ 
-            padding: '8px 16px', 
-            cursor: 'pointer', 
-            backgroundColor: '#dc3545', 
-            color: '#fff', 
-            border: 'none', 
-            borderRadius: '4px' 
-          }}
-        >
-          Cerrar Sesión
-        </button>
-      </header>
+    <div style={{ backgroundColor: '#121212', minHeight: '100vh', color: '#fff' }}>
+      {isAuthenticated ? (
+        <div>
+          {/* Navbar recibe la función para cambiar de pantalla */}
+          <Navbar onLogout={handleLogout} onNavigate={setVistaActual} />
+          
+          <main style={{ padding: '30px' }}>
+            {/* VISTA 1: Catálogo Principal */}
+            {vistaActual === 'catalogo' && (
+              <div style={{ textAlign: 'center' }}>
+                <h1>Catálogo de Subastas</h1>
+                <p style={{ color: '#aaa' }}>Acá van a aparecer las tarjetas de los productos subastados...</p>
+              </div>
+            )}
 
-      <main>
-        <Billetera />
-      </main>
+            {/* VISTA 2: Pantalla / Menú de Billetera (de tu compañero) */}
+            {vistaActual === 'billetera' && (
+              <div>
+                <Billetera />
+              </div>
+            )}
+          </main>
+        </div>
+      ) : (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      )}
     </div>
   );
 }
-
-export default App;
