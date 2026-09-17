@@ -15,10 +15,9 @@ export default function Navbar({ onLogout, onNavigate }) {
       boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
       position: 'relative'
     }}>
-      {/* Lado izquierdo vacío para equilibrar el flexbox y mantener el logo 100% centrado */}
       <div style={{ width: '130px' }}></div>
 
-      {/* Logo Centrado: Al hacer clic vuelve al Catálogo */}
+      {/* Logo Centrado */}
       <h2 
         onClick={() => onNavigate('catalogo')}
         style={{
@@ -35,7 +34,7 @@ export default function Navbar({ onLogout, onNavigate }) {
         SUBASTA<span style={{ color: '#28a745' }}>YA</span>
       </h2>
 
-      {/* Lado Derecho: Botón de Usuario */}
+      {/* Menú de Perfil */}
       <div style={{ width: '130px', display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -55,7 +54,6 @@ export default function Navbar({ onLogout, onNavigate }) {
           👤 Mi Perfil ▾
         </button>
 
-        {/* Menú Desplegable */}
         {dropdownOpen && (
           <div style={{
             position: 'absolute',
@@ -71,15 +69,28 @@ export default function Navbar({ onLogout, onNavigate }) {
           }}>
             <div
               onClick={() => {
-                onNavigate('billetera'); // 👈 Redirige al menú de Billetera
+                onNavigate('mis-subastas'); // 👈 Ver Historial de Mis Subastas
                 setDropdownOpen(false);
               }}
               style={{
                 padding: '12px 16px',
                 cursor: 'pointer',
                 borderBottom: '1px solid #333',
-                color: '#fff',
-                transition: 'background 0.2s'
+                color: '#fff'
+              }}
+            >
+              📦 Mis Subastas
+            </div>
+            <div
+              onClick={() => {
+                onNavigate('billetera');
+                setDropdownOpen(false);
+              }}
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                borderBottom: '1px solid #333',
+                color: '#fff'
               }}
             >
               💳 Mi Billetera
