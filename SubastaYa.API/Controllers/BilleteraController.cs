@@ -142,5 +142,78 @@ namespace SubastaYa.API.Controllers
 
                 return Ok(movimientos);
             }
+        [HttpPost("retirar/{usuarioId}")]
+        public async Task<ActionResult<BilleteraResponseDto>> RetirarSaldo(int usuarioId, [FromBody] CargarSaldoDto dto)
+        {
+        if (dto.Monto <= 0)
+            return BadRequest(new { mensaje = "El monto a retirar debe ser mayor a cero." });
+
+        using var transaccion = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var billetera = await _context.Billeteras
+                .FirstOrDefaultAsync(b => b.UsuarioId == usuarioId);
+
+            if (billetera == null)
+                return NotFound(new { mensaje = $"No se encontró la billetera para el usuario {usuarioId}." });
+
+            if (billetera.SaldoDisponible < dto.Monto)
+                return BadRequest(new { mensaje = "Saldo disponible insuficiente para retirar." });
+
+            // Descontar del SaldoTotal
+            billetera.SaldoTotal -= dto.Monto;
+            billetera.Version++;
+
+            // Registrar en el Ledger como RETIRO
+            _context.TransaccionesLedger.Add(new TransaccionLedger
+            {
+                BilleteraId = billetera.BilleteraId,
+                TipoTransaccion = "RETIRO",
+                Monto = -dto.Monto,
+                Fecha = DateTime.UtcNow,
+                SubastaId = null
+            });
+
+            // Registrar Auditoría
+            _context.Auditorias.Add(new Auditoria_Log
+            {
+                Entidad = "BILLETERA",
+                EntidadId = billetera.BilleteraId,
+                Accion = "RETIRO_MANUAL_SALDO",
+                UsuarioId = usuarioId,
+                Detalle_Json = $"{{\"monto\": {dto.Monto}, \"nuevoSaldoTotal\": {billetera.SaldoTotal}}}",
+                Fecha = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            await transaccion.CommitAsync();
+
+            var response = new BilleteraResponseDto
+            {
+                BilleteraId = billetera.BilleteraId,
+                UsuarioId = billetera.UsuarioId,
+                SaldoTotal = billetera.SaldoTotal,
+                SaldoRetenido = billetera.SaldoRetenido,
+                SaldoDisponible = billetera.SaldoDisponible,
+                Version = billetera.Version
+            };
+
+            return Ok(new
+            {
+                mensaje = "Retiro realizado con éxito.",
+                billetera = response
+            });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaccion.RollbackAsync();
+            return Conflict(new { mensaje = "Conflicto de concurrencia al actualizar la billetera." });
+        }
+        catch (Exception ex)
+        {
+            await transaccion.RollbackAsync();
+            return StatusCode(500, new { mensaje = "Error interno al procesar el retiro.", detalle = ex.Message });
+        }
+        }
         }
     }
