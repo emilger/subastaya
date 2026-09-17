@@ -8,32 +8,42 @@ import CrearSubasta from './components/CrearSubasta';
 import MisSubastas from './components/MisSubastas';
 import { SubastaList } from './components/SubastaList';
 import { SubastaDetalle } from './components/SubastaDetalle';
+import Configuracion from './components/Configuracion';
 
 const TIMEOUT_MINUTOS = 5;
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [vistaActual, setVistaActual] = useState('catalogo');
-  const [vistaAnterior, setVistaAnterior] = useState('catalogo');
+  
+  // Persistir la vista actual al recargar la página
+  const [vistaActual, setVistaActual] = useState(() => {
+    return localStorage.getItem('vistaActual') || 'catalogo';
+  });
+
   const [subastaSeleccionada, setSubastaSeleccionada] = useState(null);
 
-  // Navegación fluida entre secciones
+  // Cambiar de pantalla y guardar en localStorage
   const navegarA = (nuevaVista) => {
-    setVistaAnterior(vistaActual);
     setVistaActual(nuevaVista);
+    localStorage.setItem('vistaActual', nuevaVista);
     if (nuevaVista !== 'catalogo') {
       setSubastaSeleccionada(null);
     }
   };
 
-  // Botón Volver para el formulario de subastas
+  // Acción global del botón Volver
   const handleVolver = () => {
-    setVistaActual(vistaAnterior);
+    if (subastaSeleccionada) {
+      setSubastaSeleccionada(null);
+    } else {
+      navegarA('catalogo');
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('lastActiveTime');
+    localStorage.removeItem('vistaActual');
     setIsAuthenticated(false);
   };
 
@@ -60,47 +70,84 @@ export default function App() {
     }
   }, []);
 
+  const mostrarBotonVolver = vistaActual !== 'catalogo' || subastaSeleccionada !== null;
+
   return (
-    <div style={{ backgroundColor: '#E3C3B1', minHeight: '100vh', width: '100%', color: '#1a1a1a' }}>
+    <div style={{ backgroundColor: '#CFA182', minHeight: '100vh', width: '100%', color: '#1a1a1a' }}>
       {isAuthenticated ? (
         <div>
-          {/* Barra de navegación superior */}
           <Navbar onLogout={handleLogout} onNavigate={navegarA} />
 
           <main style={{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* VISTA 1: Catálogo y Detalle de Subasta */}
+            {mostrarBotonVolver && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
+                <button
+                  onClick={handleVolver}
+                  title="Volver al Catálogo"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#1a1a1a',
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    padding: 0,
+                    lineHeight: '1',
+                    transition: 'opacity 0.2s ease'
+                  }}
+                >
+                  ←
+                </button>
+              </div>
+            )}
+
             {vistaActual === 'catalogo' && (
               <div>
                 {subastaSeleccionada ? (
-                  /* Detalle de la subasta seleccionada */
                   <SubastaDetalle
                     subasta={subastaSeleccionada}
-                    onVolver={() => setSubastaSeleccionada(null)}
+                    onVolver={handleVolver}
                   />
                 ) : (
-                  /* Catálogo general de productos */
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                      <h1 style={{ margin: 0, color: '#1a1a1a' }}>Catálogo de Subastas</h1>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '22px', 
+                      marginBottom: '24px' 
+                    }}>
+                      <h1 style={{ 
+                        margin: 0, 
+                        color: '#1a1a1a', 
+                        fontSize: '32px', 
+                        lineHeight: '1'
+                      }}>
+                        Catálogo
+                      </h1>
                       <button
                         onClick={() => navegarA('publicar')}
+                        title="Crear Nueva Subasta"
                         style={{
-                          padding: '12px 20px',
-                          backgroundColor: '#28a745',
-                          color: '#fff',
+                          background: 'none',
                           border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '15px',
+                          color: '#28a745',
+                          fontSize: '36px',
                           fontWeight: 'bold',
                           cursor: 'pointer',
-                          boxShadow: '0 4px 12px rgba(40, 167, 69, 0.3)'
+                          padding: 0,
+                          margin: 0,
+                          lineHeight: '1',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transform: 'translateY(4px)',
+                          transition: 'opacity 0.2s ease'
                         }}
                       >
-                        ➕ Crear Subasta
+                        +
                       </button>
                     </div>
 
-                    {/* Grilla de subastas traída de la API */}
                     <SubastaList
                       onSeleccionarSubasta={(subasta) => setSubastaSeleccionada(subasta)}
                     />
@@ -109,24 +156,24 @@ export default function App() {
               </div>
             )}
 
-            {/* VISTA 2: Formulario de Crear Subasta */}
             {vistaActual === 'publicar' && (
               <CrearSubasta
                 onSubastaCreada={() => navegarA('catalogo')}
-                onVolver={handleVolver}
               />
             )}
 
-            {/* VISTA 3: Historial de Mis Subastas */}
             {vistaActual === 'mis-subastas' && (
               <MisSubastas onCrearNueva={() => navegarA('publicar')} />
             )}
 
-            {/* VISTA 4: Menú Billetera */}
             {vistaActual === 'billetera' && (
               <div>
                 <Billetera />
               </div>
+            )}
+
+            {vistaActual === 'configuracion' && (
+              <Configuracion />
             )}
           </main>
         </div>

@@ -70,29 +70,8 @@ export default function CrearSubasta({ onSubastaCreada, onVolver }) {
     <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#1e1e1e', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
       {/* Encabezado con Botón Volver y Título Centrado */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-        {onVolver && (
-          <button
-            type="button"
-            onClick={onVolver}
-            style={{
-              backgroundColor: '#2b2b2b',
-              color: '#fff',
-              border: '1px solid #444',
-              padding: '8px 14px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            ← Volver
-          </button>
-        )}
         <h2 style={{ textAlign: 'center', margin: 0, color: '#fff', flex: 1, paddingRight: onVolver ? '80px' : '0' }}>
-          📢 Publicar Nueva Subasta
+          Publicar Nueva Subasta
         </h2>
       </div>
 
@@ -159,10 +138,10 @@ export default function CrearSubasta({ onSubastaCreada, onVolver }) {
               onChange={handleChange}
               style={inputStyle}
             >
-              <option value="1">📱 Tecnología</option>
-              <option value="2">🏆 Coleccionables</option>
-              <option value="3">👕 Indumentaria</option>
-              <option value="4">🚗 Vehículos</option>
+              <option value="1"> Tecnología</option>
+              <option value="2"> Coleccionables</option>
+              <option value="3"> Indumentaria</option>
+              <option value="4"> Vehículos</option>
             </select>
           </div>
         </div>
@@ -260,7 +239,7 @@ export default function CrearSubasta({ onSubastaCreada, onVolver }) {
               transition: 'background 0.2s'
             }}
           >
-            {cargando ? 'Publicando...' : '🚀 Publicar Subasta'}
+            {cargando ? 'Publicando...' : ' Publicar Subasta'}
           </button>
         </div>
       </form>

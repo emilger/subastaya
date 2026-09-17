@@ -2,130 +2,165 @@
 import React, { useState } from 'react';
 
 export default function Navbar({ onLogout, onNavigate }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownAbierto, setDropdownAbierto] = useState(false);
+
+  const handleNavegar = (vista) => {
+    onNavigate(vista);
+    setDropdownAbierto(false);
+  };
+
+  const handleLogoutMenu = () => {
+    onLogout();
+    setDropdownAbierto(false);
+  };
 
   return (
-    <header style={{
+    <nav style={{
+      backgroundColor: '#1e1e1e',
+      padding: '16px 30px',
       display: 'flex',
-      justify: 'space-between',
       alignItems: 'center',
-      padding: '14px 24px',
-      backgroundColor: '#1a1a1a',
+      justifyContent: 'space-between',
       color: '#fff',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.4)',
       position: 'relative'
     }}>
-      <div style={{ width: '130px' }}></div>
+      {/* Espacio vacío a la izquierda para garantizar el centrado exacto */}
+      <div style={{ flex: 1 }} />
 
-      {/* Logo Centrado */}
-      <h2 
-        onClick={() => onNavigate('catalogo')}
-        style={{
-          margin: 0,
+      {/* Nombre de la página centrado ("Subasta" en blanco y "YA" en verde flúor) */}
+      <div 
+        onClick={() => handleNavegar('catalogo')} 
+        style={{ 
+          cursor: 'pointer', 
+          fontSize: '22px', 
+          fontWeight: 'bold', 
           textAlign: 'center',
-          flex: 1,
-          letterSpacing: '2px',
-          fontWeight: 'bold',
-          color: '#f8f9fa',
-          cursor: 'pointer',
-          userSelect: 'none'
+          flex: 1
         }}
       >
-        SUBASTA<span style={{ color: '#28a745' }}>YA</span>
-      </h2>
+        <span style={{ color: '#ffffff' }}>Subasta</span>
+        <span style={{ color: '#00FF66' }}>YA</span>
+      </div>
 
-      {/* Menú de Perfil */}
-      <div style={{ width: '130px', display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
+      {/* Menú Desplegable "Mi Cuenta" a la derecha */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
         <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
+          onClick={() => setDropdownAbierto(!dropdownAbierto)}
           style={{
-            backgroundColor: '#2d2d2d',
+            background: 'none',
+            border: 'none',
             color: '#fff',
-            border: '1px solid #444',
-            padding: '8px 16px',
-            borderRadius: '20px',
+            fontSize: '15px',
             cursor: 'pointer',
-            fontWeight: 'bold',
+            fontWeight: '500',
             display: 'flex',
             alignItems: 'center',
             gap: '6px'
           }}
         >
-          👤 Mi Perfil ▾
+          Mi Cuenta ▾
         </button>
 
-        {dropdownOpen && (
+        {/* Lista desplegable */}
+        {dropdownAbierto && (
           <div style={{
             position: 'absolute',
-            top: '45px',
-            right: '0',
-            backgroundColor: '#222',
-            border: '1px solid #444',
+            right: 0,
+            top: '130%',
+            backgroundColor: '#2b2b2b',
             borderRadius: '8px',
-            width: '190px',
-            boxShadow: '0px 6px 16px rgba(0,0,0,0.6)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+            minWidth: '180px',
+            overflow: 'hidden',
             zIndex: 1000,
-            overflow: 'hidden'
+            border: '1px solid #444'
           }}>
-            <div
-              onClick={() => {
-                onNavigate('mis-subastas'); // 👈 Ver Historial de Mis Subastas
-                setDropdownOpen(false);
-              }}
+            {/* 1. Mis subastas */}
+            <button
+              onClick={() => handleNavegar('mis-subastas')}
               style={{
+                width: '100%',
                 padding: '12px 16px',
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                textAlign: 'left',
                 cursor: 'pointer',
-                borderBottom: '1px solid #333',
-                color: '#fff'
+                fontSize: '14px',
+                transition: 'background-color 0.2s ease'
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
-              📦 Mis Subastas
-            </div>
-            <div
-              onClick={() => {
-                onNavigate('billetera');
-                setDropdownOpen(false);
-              }}
+              Mis subastas
+            </button>
+
+            {/* 2. Mi billetera */}
+            <button
+              onClick={() => handleNavegar('billetera')}
               style={{
+                width: '100%',
                 padding: '12px 16px',
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                textAlign: 'left',
                 cursor: 'pointer',
-                borderBottom: '1px solid #333',
-                color: '#fff'
+                fontSize: '14px',
+                transition: 'background-color 0.2s ease'
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
-              💳 Mi Billetera
-            </div>
-            <div
-              onClick={() => {
-                alert('Sección de Configuración en desarrollo.');
-                setDropdownOpen(false);
-              }}
+              Mi billetera
+            </button>
+
+            {/* 3. Configuración */}
+            <button
+              onClick={() => handleNavegar('configuracion')}
               style={{
+                width: '100%',
                 padding: '12px 16px',
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                textAlign: 'left',
                 cursor: 'pointer',
-                borderBottom: '1px solid #333',
-                color: '#fff'
+                fontSize: '14px',
+                transition: 'background-color 0.2s ease'
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
-              ⚙️ Configuración
-            </div>
-            <div
-              onClick={() => {
-                setDropdownOpen(false);
-                onLogout();
-              }}
+              Configuración
+            </button>
+
+            <div style={{ borderTop: '1px solid #444' }} />
+
+            {/* 4. Cerrar sesión */}
+            <button
+              onClick={handleLogoutMenu}
               style={{
+                width: '100%',
                 padding: '12px 16px',
+                background: 'none',
+                border: 'none',
+                color: '#dc3545',
+                textAlign: 'left',
                 cursor: 'pointer',
-                color: '#ff4d4d',
-                fontWeight: 'bold'
+                fontSize: '14px',
+                fontWeight: 'bold',
+                transition: 'background-color 0.2s ease'
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
-              🚪 Cerrar Sesión
-            </div>
+              Cerrar sesión
+            </button>
           </div>
         )}
       </div>
-    </header>
+    </nav>
   );
 }
