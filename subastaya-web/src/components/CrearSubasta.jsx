@@ -283,7 +283,7 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
-              Precio Inicial (\$) *
+              Precio Inicial ($) *
             </label>
             <input
               type="number"
@@ -310,7 +310,7 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
 
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
-              Incremento Mínimo (\$) *
+              Incremento Mínimo ($) *
             </label>
             <input
               type="number"

@@ -33,22 +33,56 @@ export function SubastaList({
     cargarSubastas();
   }, []);
 
+  // Extrae el nombre de la categoría de forma segura
+  const obtenerNombreCategoria = (item) => {
+    if (!item) return 'General';
+    if (typeof item.nombreCategoria === 'string') return item.nombreCategoria;
+    if (typeof item.categoria === 'string') return item.categoria;
+    if (typeof item.categoria === 'object' && item.categoria !== null) {
+      return item.categoria.nombre || item.categoria.nombreCategoria || 'General';
+    }
+    return 'General';
+  };
+
+  // Extrae el ID de la categoría de forma segura
+  const obtenerCategoriaId = (item) => {
+    if (!item) return null;
+    if (typeof item.categoriaId === 'number' || typeof item.categoriaId === 'string') {
+      return String(item.categoriaId);
+    }
+    if (typeof item.categoria === 'object' && item.categoria !== null) {
+      return String(item.categoria.categoriaId || item.categoria.id || '');
+    }
+    return null;
+  };
+
+  // Extrae el estado como string
+  const obtenerEstado = (item) => {
+    if (!item) return 'ACTIVA';
+    if (typeof item.estado === 'string') return item.estado;
+    if (typeof item.estado === 'object' && item.estado !== null) {
+      return item.estado.nombre || item.estado.descripcion || 'ACTIVA';
+    }
+    return 'ACTIVA';
+  };
+
   // Lógica de Filtrado y Ordenamiento
   const subastasProcesadas = subastas
     .filter((item) => {
-      // Búsqueda por palabra clave
+      const catNombre = obtenerNombreCategoria(item);
+      const catId = obtenerCategoriaId(item);
+      const estadoStr = obtenerEstado(item);
+
       const coincideBusqueda = !busqueda || 
-        (item.titulo && item.titulo.toLowerCase().includes(busqueda.toLowerCase())) ||
-        (item.descripcion && item.descripcion.toLowerCase().includes(busqueda.toLowerCase()));
+        (item.titulo && String(item.titulo).toLowerCase().includes(busqueda.toLowerCase())) ||
+        (item.descripcion && String(item.descripcion).toLowerCase().includes(busqueda.toLowerCase()));
 
-      // Filtro por categoría
       const coincideCategoria = categoriaFiltro === 'todas' || 
-        String(item.categoriaId) === String(categoriaFiltro) ||
-        (item.nombreCategoria && item.nombreCategoria.toLowerCase() === categoriaFiltro.toLowerCase());
+        (catId && String(catId) === String(categoriaFiltro)) ||
+        catNombre.toLowerCase() === categoriaFiltro.toLowerCase();
 
-      // Filtro por estado
       const coincideEstado = estadoFiltro === 'todos' || 
-        (item.estado && item.estado.toUpperCase() === estadoFiltro.toUpperCase());
+        estadoStr.toUpperCase() === estadoFiltro.toUpperCase();
 
       return coincideBusqueda && coincideCategoria && coincideEstado;
     })
@@ -62,7 +96,6 @@ export function SubastaList({
       if (ordenValor === 'precio_desc') {
         return precioB - precioA;
       }
-      // Por defecto: más recientes (por ID)
       return (b.subastaId || b.id || 0) - (a.subastaId || a.id || 0);
     });
 
@@ -83,6 +116,8 @@ export function SubastaList({
             const precioAMostrar = tienePujas ? item.ofertaMasAlta : (item.precioInicial || 0);
             const etiquetaPrecio = tienePujas ? 'Precio actual:' : 'Precio inicial:';
             const imagenSrc = item.urlImagen || item.imagenUrl || 'https://via.placeholder.com/300x180?text=Sin+Imagen';
+            const estadoTexto = obtenerEstado(item);
+            const nombreCategoria = obtenerNombreCategoria(item);
 
             return (
               <div
@@ -98,11 +133,10 @@ export function SubastaList({
                 }}
               >
                 <div>
-                  {/* IMAGEN DEL PRODUCTO */}
                   <div style={{ width: '100%', height: '180px', borderRadius: '8px', overflow: 'hidden', marginBottom: '14px', backgroundColor: '#E3C3B1' }}>
                     <img
                       src={imagenSrc}
-                      alt={item.titulo}
+                      alt={item.titulo || 'Subasta'}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => {
                         e.target.onerror = null;
@@ -111,7 +145,6 @@ export function SubastaList({
                     />
                   </div>
 
-                  {/* TÍTULO Y ESTADO */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#000000' }}>
                       {item.titulo}
@@ -121,20 +154,19 @@ export function SubastaList({
                       borderRadius: '6px',
                       fontSize: '11px',
                       fontWeight: 'bold',
-                      backgroundColor: item.estado === 'ACTIVA' || item.estado === 'Activa' ? 'rgba(40, 167, 69, 0.2)' : 'rgba(108, 117, 125, 0.2)',
-                      color: item.estado === 'ACTIVA' || item.estado === 'Activa' ? '#155724' : '#495057'
+                      backgroundColor: estadoTexto === 'ACTIVA' || estadoTexto === 'Activa' ? 'rgba(40, 167, 69, 0.2)' : 'rgba(108, 117, 125, 0.2)',
+                      color: estadoTexto === 'ACTIVA' || estadoTexto === 'Activa' ? '#155724' : '#495057'
                     }}>
-                      {item.estado || 'ACTIVA'}
+                      {estadoTexto}
                     </span>
                   </div>
 
-                  {/* CATEGORÍA Y EVALUACIÓN DE PRECIO */}
                   <div style={{ fontSize: '13px', color: '#000000', marginBottom: '14px' }}>
                     <div style={{ marginBottom: '4px' }}>
-                      Categoría: <strong>{item.nombreCategoria || item.categoria || 'General'}</strong>
+                      Categoría: <strong>{nombreCategoria}</strong>
                     </div>
                     <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#000000' }}>
-                      {etiquetaPrecio} <span style={{ fontSize: '17px' }}>${precioAMostrar.toLocaleString('es-AR')}</span>
+                      {etiquetaPrecio} <span style={{ fontSize: '17px' }}>${Number(precioAMostrar).toLocaleString('es-AR')}</span>
                     </div>
                   </div>
                 </div>

@@ -129,7 +129,7 @@ export function Navbar({
             Filtros ▾
           </button>
 
-          {/* DESPLEGABLE CON LOS FILTROS */}
+          {/* DESPLEGABLE CON LOS FILTROS SEGÚN MODELO DE DOMINIO */}
           {dropdownFiltros && (
             <div style={{
               position: 'absolute',
@@ -139,7 +139,7 @@ export function Navbar({
               borderRadius: '10px',
               boxShadow: '0 6px 20px rgba(0,0,0,0.6)',
               padding: '16px',
-              minWidth: '220px',
+              minWidth: '230px',
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
@@ -165,11 +165,11 @@ export function Navbar({
                   }}
                 >
                   <option value="todas">Todas las categorías</option>
-                  <option value="1">Electrónica</option>
-                  <option value="2">Arte y Antigüedades</option>
-                  <option value="3">Vehículos</option>
-                  <option value="4">Coleccionables</option>
-                  <option value="5">Otros</option>
+                  <option value="1">Tecnología</option>
+                  <option value="2">Coleccionables</option>
+                  <option value="3">Indumentaria</option>
+                  <option value="4">Vehículos</option>
+                  <option value="5">Arte</option>
                 </select>
               </div>
 
@@ -192,8 +192,10 @@ export function Navbar({
                   }}
                 >
                   <option value="todos">Todos los estados</option>
-                  <option value="ACTIVA">Activa</option>
-                  <option value="FINALIZADA">Finalizada</option>
+                  <option value="ACTIVA">Activas </option>
+                  <option value="PROGRAMADA">Programadas </option>
+                  <option value="FINALIZADA">Finalizadas</option>
+                  <option value="DESIERTA">Desiertas</option>
                 </select>
               </div>
 

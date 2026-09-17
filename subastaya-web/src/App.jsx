@@ -17,7 +17,17 @@ export default function App() {
   const [vistaActual, setVistaActual] = useState(() => {
     return localStorage.getItem('vistaActual') || 'catalogo';
   });
-  const [subastaSeleccionada, setSubastaSeleccionada] = useState(null);
+
+  // Guardamos y recuperamos la subasta seleccionada en localStorage para mantenerla al refrescar
+  const [subastaSeleccionada, setSubastaSeleccionada] = useState(() => {
+    try {
+      const guardada = localStorage.getItem('subastaSeleccionada');
+      return guardada ? JSON.parse(guardada) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [usuarioActual] = useState({ id: 1, nombre: 'Usuario Demo' });
 
   // Estados de Búsqueda y Filtros compartidos
@@ -26,17 +36,27 @@ export default function App() {
   const [estadoFiltro, setEstadoFiltro] = useState('todos');
   const [ordenValor, setOrdenValor] = useState('recientes');
 
+  // Función helper para seleccionar y persistir la subasta
+  const seleccionarSubasta = (subasta) => {
+    setSubastaSeleccionada(subasta);
+    if (subasta) {
+      localStorage.setItem('subastaSeleccionada', JSON.stringify(subasta));
+    } else {
+      localStorage.removeItem('subastaSeleccionada');
+    }
+  };
+
   const navegarA = (nuevaVista) => {
     setVistaActual(nuevaVista);
     localStorage.setItem('vistaActual', nuevaVista);
     if (nuevaVista !== 'catalogo') {
-      setSubastaSeleccionada(null);
+      seleccionarSubasta(null);
     }
   };
 
   const handleVolver = () => {
     if (subastaSeleccionada) {
-      setSubastaSeleccionada(null);
+      seleccionarSubasta(null);
     } else {
       navegarA('catalogo');
     }
@@ -46,6 +66,7 @@ export default function App() {
     localStorage.removeItem('token');
     localStorage.removeItem('lastActiveTime');
     localStorage.removeItem('vistaActual');
+    localStorage.removeItem('subastaSeleccionada');
     setIsAuthenticated(false);
   };
 
@@ -145,7 +166,7 @@ export default function App() {
                     </div>
 
                     <SubastaList
-                      onSeleccionarSubasta={(subasta) => setSubastaSeleccionada(subasta)}
+                      onSeleccionarSubasta={(subasta) => seleccionarSubasta(subasta)}
                       busqueda={busqueda}
                       categoriaFiltro={categoriaFiltro}
                       estadoFiltro={estadoFiltro}
@@ -169,7 +190,7 @@ export default function App() {
                 usuarioId={usuarioActual.id}
                 onCrearSubasta={() => navegarA('publicar')}
                 onSeleccionarSubasta={(id) => {
-                  setSubastaSeleccionada({ id });
+                  seleccionarSubasta({ id });
                   navegarA('catalogo');
                 }}
               />
