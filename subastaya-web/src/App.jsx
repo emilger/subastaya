@@ -14,13 +14,13 @@ const TIMEOUT_MINUTOS = 5;
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // Persistir la vista actual al recargar la página
   const [vistaActual, setVistaActual] = useState(() => {
     return localStorage.getItem('vistaActual') || 'catalogo';
   });
-
   const [subastaSeleccionada, setSubastaSeleccionada] = useState(null);
+
+  // Definición del estado de usuario activo para evitar el ReferenceError
+  const [usuarioActual, setUsuarioActual] = useState({ id: 1, nombre: 'Usuario Demo' });
 
   // Cambiar de pantalla y guardar en localStorage
   const navegarA = (nuevaVista) => {
@@ -59,7 +59,7 @@ export default function App() {
     const limiteMs = TIMEOUT_MINUTOS * 60 * 1000;
 
     if (token) {
-      if (lastActive && (now - Number(lastActive) > limiteMs)) {
+      if (lastActive && now - Number(lastActive) > limiteMs) {
         handleLogout();
       } else {
         localStorage.setItem('lastActiveTime', now.toString());
@@ -110,18 +110,8 @@ export default function App() {
                   />
                 ) : (
                   <div>
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '22px', 
-                      marginBottom: '24px' 
-                    }}>
-                      <h1 style={{ 
-                        margin: 0, 
-                        color: '#1a1a1a', 
-                        fontSize: '32px', 
-                        lineHeight: '1'
-                      }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '22px', marginBottom: '24px' }}>
+                      <h1 style={{ margin: 0, color: '#1a1a1a', fontSize: '32px', lineHeight: '1' }}>
                         Catálogo
                       </h1>
                       <button
@@ -157,24 +147,27 @@ export default function App() {
             )}
 
             {vistaActual === 'publicar' && (
-              <CrearSubasta
-                onSubastaCreada={() => navegarA('catalogo')}
-              />
+              <CrearSubasta onSubastaCreada={() => navegarA('catalogo')} />
             )}
 
             {vistaActual === 'mis-subastas' && (
-              <MisSubastas onCrearNueva={() => navegarA('publicar')} />
+              <MisSubastas
+                usuarioId={usuarioActual.id}
+                onCrearSubasta={() => navegarA('publicar')}
+                onSeleccionarSubasta={(id) => {
+                  setSubastaSeleccionada({ id });
+                  navegarA('catalogo');
+                }}
+              />
             )}
 
             {vistaActual === 'billetera' && (
               <div>
-                <Billetera />
+                <Billetera usuarioId={usuarioActual.id} />
               </div>
             )}
 
-            {vistaActual === 'configuracion' && (
-              <Configuracion />
-            )}
+            {vistaActual === 'configuracion' && <Configuracion />}
           </main>
         </div>
       ) : (

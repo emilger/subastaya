@@ -1,104 +1,75 @@
 // src/api.js
 import axios from 'axios';
 
-const API = axios.create({
-  baseURL: 'http://localhost:5118/api', // URL Base oficial
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const API_BASE_URL = 'http://localhost:5118/api/v1';
 
-// Interceptor para adjuntar automáticamente el Token JWT en cada petición
-API.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// --- FUNCIONES PARA SUBASTAS ---
-
-// Obtener el catálogo general de subastas
-export const getSubastas = async (filtros = {}) => {
-  const response = await API.get('/v1/auctions', { params: filtros });
-  return response.data;
-};
-export const obtenerSubastas = getSubastas;
-
-// Obtener el detalle de una subasta específica
-export const getSubastaById = async (id) => {
-  const response = await API.get(`/v1/auctions/${id}`);
-  return response.data;
-};
-export const obtenerSubastaPorId = getSubastaById;
-
-// Crear / Publicar una nueva subasta
-export const crearSubasta = async (subastaData) => {
-  const response = await API.post('/v1/auctions', subastaData);
-  return response.data;
-};
-
-// Realizar una oferta o puja manual
-export const realizarPuja = async (subastaId, monto) => {
-  const response = await API.post(`/v1/auctions/${subastaId}/bids`, { montoPuja: Number(monto) });
-  return response.data;
-};
-export const pujar = realizarPuja;
-
-// Configurar puja automática (Proxy Bidding)
-export const configurarPujaAutomatica = async (subastaId, montoMaximo) => {
-  const response = await API.post(`/v1/auctions/${subastaId}/auto-bids`, { montoMaximo: Number(montoMaximo) });
-  return response.data;
-};
-export const autoPuja = configurarPujaAutomatica;
-export const pujaAutomatica = configurarPujaAutomatica;
-
-// --- FUNCIONES PARA LA BILLETERA ---
-
-// Consulta de saldo y billetera
-export const getBilletera = async () => {
-  const response = await API.get('/v1/wallet');
-  return response.data;
-};
-export const obtenerBilletera = getBilletera;
-export const getWallet = getBilletera;
-
-// Depósito de saldo
-// src/api.js
-
-export const cargarSaldo = async (usuarioId, monto) => {
-  try {
-    // Intenta enviar la petición al backend
-    return await axios.post(`http://localhost:5118/api/v1/wallet/deposit`, {
-      usuarioId,
-      monto
-    });
-  } catch (error) {
-    // Si la API devuelve 404 o está apagada, responde con un éxito simulado en el frontend
-    console.warn('Backend endpoint no disponible (404), simulando respuesta exitosa en frontend.');
-    return {
-      data: {
-        mensaje: 'Depósito realizado con éxito (modo simulación)',
-        billetera: {
-          saldoDisponible: monto,
-          saldoRetenido: 0,
-          saldoTotal: monto
-        }
-      }
-    };
+// Interceptor para adjuntar el Token JWT si el usuario inició sesión
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+}, (error) => Promise.reject(error));
+
+// ==========================================
+// 1. BILLETERA / WALLET
+// ==========================================
+
+// Obtener estado de la billetera desde PostgreSQL
+export const getBilletera = async (usuarioId = 1) => {
+  return await axios.get(`${API_BASE_URL}/wallets/${usuarioId}`);
 };
 
-// Retiro de fondos
-export const retirarSaldo = async (monto) => {
-  const response = await API.post('/v1/wallet/withdraw', { monto: Number(monto) });
-  return response.data;
+// Cargar saldo (Registra en TRANSACCION_LEDGER y AUDITORIA_LOG)
+export const cargarSaldo = async (usuarioId = 1, monto) => {
+  return await axios.post(`${API_BASE_URL}/wallets/cargar/${usuarioId}`, {
+    monto: Number(monto)
+  });
 };
 
-// --- EXPORTACIONES PRINCIPALES DE AXIOS ---
-export { API };
-export default API;
+// Obtener el historial de movimientos del Ledger
+export const getMovimientos = async (usuarioId = 1) => {
+  return await axios.get(`${API_BASE_URL}/wallets/users/${usuarioId}/movements`);
+};
+
+// ==========================================
+// 2. SUBASTAS Y PUJAS / AUCTIONS & BIDS
+// ==========================================
+
+// Crear/Publicar una nueva subasta
+export const crearSubasta = async (subastaData) => {
+  return await axios.post(`${API_BASE_URL}/auctions`, subastaData);
+};
+
+// Obtener todas las subastas activas (Catálogo)
+export const getSubastas = async () => {
+  return await axios.get(`${API_BASE_URL}/auctions`);
+};
+
+// Obtener detalle de una subasta por ID
+export const getSubastaDetalle = async (id) => {
+  return await axios.get(`${API_BASE_URL}/auctions/${id}`);
+};
+
+// Realizar una puja manual en una subasta (exportado como realizarPuja y crearPuja)
+export const realizarPuja = async (subastaId, monto) => {
+  return await axios.post(`${API_BASE_URL}/auctions/${subastaId}/bids`, {
+    monto: Number(monto)
+  });
+};
+
+export const crearPuja = realizarPuja;
+
+// Configurar o actualizar Puja Automática (Proxy Bidding)
+export const configurarPujaAutomatica = async (subastaId, limiteMaximo) => {
+  return await axios.post(`${API_BASE_URL}/auctions/${subastaId}/auto-bid`, {
+    limiteMaximo: Number(limiteMaximo)
+  });
+};
+// Agregar a src/api.js
+export const retirarSaldo = async (usuarioId = 1, monto) => {
+  return await axios.post(`${API_BASE_URL}/wallets/retirar/${usuarioId}`, {
+    monto: Number(monto)
+  });
+};

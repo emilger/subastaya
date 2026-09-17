@@ -2,141 +2,249 @@
 import React, { useState } from 'react';
 
 export default function Configuracion() {
-  const [nombre, setNombre] = useState('Usuario Subasta');
-  const [email, setEmail] = useState('usuario@subastaya.com');
-  const [limitePujaAuto, setLimitePujaAuto] = useState('50000');
-  const [notificacionesEmail, setNotificacionesEmail] = useState(true);
+  // Estado del perfil sin teléfono de contacto
+  const [perfil, setPerfil] = useState(() => {
+    const guardado = localStorage.getItem('perfilUsuario');
+    return guardado ? JSON.parse(guardado) : {
+      nombre: 'Usuario SubastaYa',
+      email: 'usuario@subastaya.com',
+      notifPujas: true,
+      notifCierre: true,
+      notifOfertas: false
+    };
+  });
+
   const [passwordActual, setPasswordActual] = useState('');
-  const [nuevaPassword, setNuevaPassword] = useState('');
-  const [mensaje, setMensaje] = useState('');
+  const [passwordNueva, setPasswordNueva] = useState('');
+  const [mensajeExito, setMensajeExito] = useState(null);
+
+  const handleChangeInput = (e) => {
+    const { name, value, type, checked } = e.target;
+    setPerfil(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
 
   const handleGuardarPerfil = (e) => {
     e.preventDefault();
-    setMensaje(' Configuración guardada correctamente.');
-    setTimeout(() => setMensaje(''), 3000);
+    localStorage.setItem('perfilUsuario', JSON.stringify(perfil));
+    setMensajeExito('¡Configuración guardada correctamente!');
+    setTimeout(() => setMensajeExito(null), 3000);
   };
 
   const handleCambiarPassword = (e) => {
     e.preventDefault();
-    if (!passwordActual || !nuevaPassword) {
-      setMensaje('Error: Por favor completá ambos campos de contraseña.');
+    if (!passwordActual || !passwordNueva) {
+      alert('Por favor completá los dos campos de contraseña.');
       return;
     }
-    setMensaje(' Contraseña actualizada con éxito.');
+    alert('¡Contraseña actualizada con éxito!');
     setPasswordActual('');
-    setNuevaPassword('');
-    setTimeout(() => setMensaje(''), 3000);
+    setPasswordNueva('');
   };
 
   return (
-    <div style={{ maxWidth: '650px', margin: '0 auto', backgroundColor: '#E3C3B1', padding: '30px', borderRadius: '12px', color: '#1a1a1a', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
-      <h2 style={{ textAlign: 'center', marginTop: 0, marginBottom: '24px', color: '#1a1a1a' }}>
-        Configuración de la Cuenta
+    <div style={{ maxWidth: '650px', margin: '0 auto', color: '#000000', padding: '10px 0' }}>
+      <h2 style={{ marginTop: 0, marginBottom: '24px', color: '#000000', fontSize: '24px', fontWeight: 'bold' }}>
+        Configuración
       </h2>
 
-      {mensaje && (
-        <div style={{ 
-          padding: '12px', 
-                  backgroundColor: mensaje.startsWith('✓') ? 'rgba(40, 167, 69, 0.2)' : 'rgba(220, 53, 69, 0.2)', 
-                  border: `1px solid ${mensaje.startsWith('✓') ? '#28a745' : '#dc3545'}`, 
-          color: '#1a1a1a', 
-          borderRadius: '8px', 
-          marginBottom: '20px', 
-          textAlign: 'center', 
-          fontWeight: 'bold' 
+      {mensajeExito && (
+        <div style={{
+          padding: '12px',
+          backgroundColor: 'rgba(40, 167, 69, 0.2)',
+          border: '1px solid #28a745',
+          color: '#155724',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          fontWeight: 'bold',
+          textAlign: 'center'
         }}>
-          {mensaje}
+          {mensajeExito}
         </div>
       )}
 
-      {/* Sección 1: Datos Personales y Preferencias */}
+      {/* 1. DATOS PERSONALES */}
       <form onSubmit={handleGuardarPerfil} style={{ marginBottom: '32px' }}>
-        <h3 style={{ borderBottom: '1px solid #c49a7c', paddingBottom: '8px', color: '#1a1a1a' }}>Datos de Perfil</h3>
-        
+        <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#000000', borderBottom: '2px solid #b38b6d', paddingBottom: '8px' }}>
+          Datos Personales
+        </h3>
+
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#333' }}>Nombre y Apellido</label>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold' }}>
+            Nombre Completo:
+          </label>
           <input
             type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #b38b6d', backgroundColor: '#FFD2B5', color: '#1a1a1a', fontSize: '14px', boxSizing: 'border-box' }}
+            name="nombre"
+            value={perfil.nombre}
+            onChange={handleChangeInput}
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #b38b6d',
+              backgroundColor: '#FFD2B5',
+              color: '#000000',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              outline: 'none',
+              fontWeight: '500'
+            }}
           />
         </div>
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#333' }}>Correo Electrónico</label>
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold' }}>
+            Correo Electrónico:
+          </label>
           <input
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #b38b6d', backgroundColor: '#FFD2B5', color: '#1a1a1a', fontSize: '14px', boxSizing: 'border-box' }}
+            name="email"
+            value={perfil.email}
+            onChange={handleChangeInput}
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #b38b6d',
+              backgroundColor: '#FFD2B5',
+              color: '#000000',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              outline: 'none',
+              fontWeight: '500'
+            }}
           />
         </div>
 
-        <h3 style={{ borderBottom: '1px solid #c49a7c', paddingBottom: '8px', marginTop: '24px', color: '#1a1a1a' }}>Preferencias de Subastas</h3>
+        {/* 2. PREFERENCIAS DE NOTIFICACIÓN */}
+        <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#000000', borderBottom: '2px solid #b38b6d', paddingBottom: '8px' }}>
+          Preferencias de Notificación
+        </h3>
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#333' }}>Límite Máximo para Pujas Automáticas (\$)</label>
-          <input
-            type="number"
-            value={limitePujaAuto}
-            onChange={(e) => setLimitePujaAuto(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #b38b6d', backgroundColor: '#FFD2B5', color: '#1a1a1a', fontSize: '14px', boxSizing: 'border-box' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
           <input
             type="checkbox"
-            id="notif"
-            checked={notificacionesEmail}
-            onChange={(e) => setNotificacionesEmail(e.target.checked)}
-            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            name="notifPujas"
+            checked={perfil.notifPujas}
+            onChange={handleChangeInput}
+            style={{ width: '18px', height: '18px', accentColor: '#1e1e1e' }}
           />
-          <label htmlFor="notif" style={{ fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-            Recibir alertas cuando superen mi puja o finalice una subasta
-          </label>
-        </div>
+          Notificarme cuando superen mi puja en una subasta activa
+        </label>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
+          <input
+            type="checkbox"
+            name="notifCierre"
+            checked={perfil.notifCierre}
+            onChange={handleChangeInput}
+            style={{ width: '18px', height: '18px', accentColor: '#1e1e1e' }}
+          />
+          Avisarme cuando una subasta en la que participo esté por finalizar
+        </label>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
+          <input
+            type="checkbox"
+            name="notifOfertas"
+            checked={perfil.notifOfertas}
+            onChange={handleChangeInput}
+            style={{ width: '18px', height: '18px', accentColor: '#1e1e1e' }}
+          />
+          Recibir novedades y avisos importantes
+        </label>
 
         <button
           type="submit"
-          style={{ padding: '12px 20px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            backgroundColor: '#1e1e1e',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '15px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
         >
           Guardar Cambios
         </button>
       </form>
 
-      {/* Sección 2: Seguridad */}
-      <form onSubmit={handleCambiarPassword}>
-        <h3 style={{ borderBottom: '1px solid #c49a7c', paddingBottom: '8px', color: '#1a1a1a' }}>Seguridad</h3>
+      {/* 3. SEGURIDAD Y CONTRASEÑA */}
+      <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#000000', borderBottom: '2px solid #b38b6d', paddingBottom: '8px' }}>
+        Seguridad y Contraseña
+      </h3>
 
+      <form onSubmit={handleCambiarPassword}>
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#333' }}>Contraseña Actual</label>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold' }}>
+            Contraseña Actual:
+          </label>
           <input
             type="password"
+            placeholder="••••••••"
             value={passwordActual}
             onChange={(e) => setPasswordActual(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #b38b6d', backgroundColor: '#FFD2B5', color: '#1a1a1a', fontSize: '14px', boxSizing: 'border-box' }}
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #b38b6d',
+              backgroundColor: '#FFD2B5',
+              color: '#000000',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              outline: 'none'
+            }}
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#333' }}>Nueva Contraseña</label>
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold' }}>
+            Nueva Contraseña:
+          </label>
           <input
             type="password"
-            value={nuevaPassword}
-            onChange={(e) => setNuevaPassword(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #b38b6d', backgroundColor: '#FFD2B5', color: '#1a1a1a', fontSize: '14px', boxSizing: 'border-box' }}
+            placeholder="••••••••"
+            value={passwordNueva}
+            onChange={(e) => setPasswordNueva(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #b38b6d',
+              backgroundColor: '#FFD2B5',
+              color: '#000000',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              outline: 'none'
+            }}
           />
         </div>
 
         <button
           type="submit"
-          style={{ padding: '12px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            backgroundColor: '#1e1e1e',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '15px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
         >
           Actualizar Contraseña
         </button>
       </form>
+
     </div>
   );
 }
