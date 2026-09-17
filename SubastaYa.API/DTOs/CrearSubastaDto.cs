@@ -6,7 +6,7 @@ namespace SubastaYa.API.DTOs
     {
         [Required(ErrorMessage = "El título es obligatorio.")]
         [StringLength(100, ErrorMessage = "El título no puede superar los 100 caracteres.")]
-        [RegularExpression(@"^[a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ\\-\_.,()]+$", ErrorMessage = "El título contiene caracteres no válidos.")] 
+        [RegularExpression(@"^[a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ.\ _,()-]+$", ErrorMessage = "El título contiene caracteres no válidos.")]
         public string Titulo { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La descripción es obligatoria.")]
