@@ -78,5 +78,7 @@ export function Billetera({ usuarioId }) {
         </button>
       </form>
     </div>
-  );
+    );
+    // Al final de src/components/Billetera.jsx 
+  
 }
