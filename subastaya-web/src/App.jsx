@@ -6,8 +6,8 @@ import Navbar from './components/Navbar';
 import { Billetera } from './components/Billetera';
 import CrearSubasta from './components/CrearSubasta';
 import MisSubastas from './components/MisSubastas';
-import { SubastaList } from './components/SubastaList';
-import { SubastaDetalle } from './components/SubastaDetalle';
+import SubastaList from './components/SubastaList';
+import SubastaDetalle from './components/SubastaDetalle';
 import Configuracion from './components/Configuracion';
 
 const TIMEOUT_MINUTOS = 5;
@@ -18,11 +18,14 @@ export default function App() {
     return localStorage.getItem('vistaActual') || 'catalogo';
   });
   const [subastaSeleccionada, setSubastaSeleccionada] = useState(null);
+  const [usuarioActual] = useState({ id: 1, nombre: 'Usuario Demo' });
 
-  // Definición del estado de usuario activo para evitar el ReferenceError
-  const [usuarioActual, setUsuarioActual] = useState({ id: 1, nombre: 'Usuario Demo' });
+  // Estados de Búsqueda y Filtros compartidos
+  const [busqueda, setBusqueda] = useState('');
+  const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+  const [estadoFiltro, setEstadoFiltro] = useState('todos');
+  const [ordenValor, setOrdenValor] = useState('recientes');
 
-  // Cambiar de pantalla y guardar en localStorage
   const navegarA = (nuevaVista) => {
     setVistaActual(nuevaVista);
     localStorage.setItem('vistaActual', nuevaVista);
@@ -31,7 +34,6 @@ export default function App() {
     }
   };
 
-  // Acción global del botón Volver
   const handleVolver = () => {
     if (subastaSeleccionada) {
       setSubastaSeleccionada(null);
@@ -73,27 +75,37 @@ export default function App() {
   const mostrarBotonVolver = vistaActual !== 'catalogo' || subastaSeleccionada !== null;
 
   return (
-    <div style={{ backgroundColor: '#CFA182', minHeight: '100vh', width: '100%', color: '#1a1a1a' }}>
+    <div style={{ backgroundColor: '#E5B295', minHeight: '100vh', width: '100%', color: '#000000', fontFamily: 'sans-serif' }}>
       {isAuthenticated ? (
         <div>
-          <Navbar onLogout={handleLogout} onNavigate={navegarA} />
+          <Navbar 
+            onLogout={handleLogout} 
+            onNavigate={navegarA}
+            busqueda={busqueda}
+            setBusqueda={setBusqueda}
+            categoriaFiltro={categoriaFiltro}
+            setCategoriaFiltro={setCategoriaFiltro}
+            estadoFiltro={estadoFiltro}
+            setEstadoFiltro={setEstadoFiltro}
+            ordenValor={ordenValor}
+            setOrdenValor={setOrdenValor}
+          />
 
-          <main style={{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
+          <main style={{ padding: '24px 20px', maxWidth: '1200px', margin: '0 auto' }}>
             {mostrarBotonVolver && (
               <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
                 <button
                   onClick={handleVolver}
-                  title="Volver al Catálogo"
+                  title="Volver"
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#1a1a1a',
+                    color: '#000000',
                     fontSize: '28px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     padding: 0,
-                    lineHeight: '1',
-                    transition: 'opacity 0.2s ease'
+                    lineHeight: '1'
                   }}
                 >
                   ←
@@ -106,40 +118,38 @@ export default function App() {
                 {subastaSeleccionada ? (
                   <SubastaDetalle
                     subasta={subastaSeleccionada}
+                    usuarioId={usuarioActual.id}
                     onVolver={handleVolver}
                   />
                 ) : (
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '22px', marginBottom: '24px' }}>
-                      <h1 style={{ margin: 0, color: '#1a1a1a', fontSize: '32px', lineHeight: '1' }}>
-                        Catálogo
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                      <h1 style={{ margin: 0, color: '#000000', fontSize: '28px', fontWeight: 'bold' }}>
+                        Subastas
                       </h1>
                       <button
                         onClick={() => navegarA('publicar')}
-                        title="Crear Nueva Subasta"
                         style={{
-                          background: 'none',
+                          padding: '10px 18px',
+                          backgroundColor: '#1e1e1e',
+                          color: '#ffffff',
                           border: 'none',
-                          color: '#28a745',
-                          fontSize: '36px',
+                          borderRadius: '8px',
+                          fontSize: '14px',
                           fontWeight: 'bold',
-                          cursor: 'pointer',
-                          padding: 0,
-                          margin: 0,
-                          lineHeight: '1',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transform: 'translateY(4px)',
-                          transition: 'opacity 0.2s ease'
+                          cursor: 'pointer'
                         }}
                       >
-                        +
+                        Crear Nueva Subasta
                       </button>
                     </div>
 
                     <SubastaList
                       onSeleccionarSubasta={(subasta) => setSubastaSeleccionada(subasta)}
+                      busqueda={busqueda}
+                      categoriaFiltro={categoriaFiltro}
+                      estadoFiltro={estadoFiltro}
+                      ordenValor={ordenValor}
                     />
                   </div>
                 )}
@@ -147,7 +157,11 @@ export default function App() {
             )}
 
             {vistaActual === 'publicar' && (
-              <CrearSubasta onSubastaCreada={() => navegarA('catalogo')} />
+              <CrearSubasta 
+                usuarioId={usuarioActual.id}
+                onSubastaCreada={() => navegarA('catalogo')} 
+                onVolver={handleVolver}
+              />
             )}
 
             {vistaActual === 'mis-subastas' && (
@@ -162,9 +176,7 @@ export default function App() {
             )}
 
             {vistaActual === 'billetera' && (
-              <div>
-                <Billetera usuarioId={usuarioActual.id} />
-              </div>
+              <Billetera usuarioId={usuarioActual.id} />
             )}
 
             {vistaActual === 'configuracion' && <Configuracion />}

@@ -13,11 +13,11 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
     fechaFin: ''
   });
 
+  const [vistaPrevia, setVistaPrevia] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
   const [mensajeExito, setMensajeExito] = useState(null);
 
-  // Obtener fecha actual en formato local ISO para la validación del atributo min
   const obtenerFechaMinimaActual = () => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -27,8 +27,6 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Validar que en la fecha no se escriban años con más de 4 dígitos
     if (name === 'fechaFin' && value) {
       const anioIngresado = value.split('-');
       if (anioIngresado && anioIngresado.length > 4) {
@@ -39,6 +37,35 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
     setFormData((prev) => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleImagenChange = (e) => {
+    const archivo = e.target.files[0];
+    if (archivo) {
+      if (!archivo.type.startsWith('image/')) {
+        setError('Por favor seleccioná un archivo de imagen válido (JPG, PNG, WebP).');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setVistaPrevia(base64String);
+        setFormData((prev) => ({
+          ...prev,
+          imagenUrl: base64String
+        }));
+      };
+      reader.readAsDataURL(archivo);
+    }
+  };
+
+  const handleQuitarImagen = () => {
+    setVistaPrevia(null);
+    setFormData((prev) => ({
+      ...prev,
+      imagenUrl: ''
     }));
   };
 
@@ -57,7 +84,6 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
       return;
     }
 
-    // Validar año lógico
     const anio = new Date(formData.fechaFin).getFullYear();
     if (isNaN(anio) || anio > 2099 || anio < new Date().getFullYear()) {
       setError('Por favor ingresá una fecha y año válidos.');
@@ -83,7 +109,6 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
         if (onSubastaCreada) onSubastaCreada();
       }, 1500);
     } catch (err) {
-      // Fallback para pruebas si el servidor no responde
       console.warn('Servidor offline o error en API. Registrando subasta localmente.');
       setMensajeExito('Subasta publicada con éxito.');
       setTimeout(() => {
@@ -96,7 +121,6 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
 
   return (
     <div style={{ maxWidth: '650px', margin: '0 auto', color: '#000000', padding: '10px 0' }}>
-      {/* Ocultar flechitas de incremento en campos de tipo number */}
       <style>{`
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
@@ -127,7 +151,7 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
               cursor: 'pointer'
             }}
           >
-            Volver a Mis Subastas
+            Volver
           </button>
         )}
       </div>
@@ -339,24 +363,23 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
           />
         </div>
 
-        {/* 3. IMÁGENES */}
+        {/* 3. CARGA DIRECTA DE IMAGEN DE PRODUCTO */}
         <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#000000', borderBottom: '2px solid #b38b6d', paddingBottom: '8px', fontWeight: 'bold' }}>
           Imagen del Producto
         </h3>
 
         <div style={{ marginBottom: '28px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
-            URL de la Imagen
+            Cargar foto desde tu dispositivo
           </label>
+          
           <input
-            type="url"
-            name="imagenUrl"
-            placeholder="https://ejemplo.com/imagen.jpg"
-            value={formData.imagenUrl}
-            onChange={handleChange}
+            type="file"
+            accept="image/*"
+            onChange={handleImagenChange}
             style={{
               width: '100%',
-              padding: '12px',
+              padding: '10px',
               borderRadius: '8px',
               border: '1px solid #b38b6d',
               backgroundColor: '#FFD2B5',
@@ -364,9 +387,48 @@ export default function CrearSubasta({ onSubastaCreada, onVolver, usuarioId = 1 
               fontSize: '14px',
               boxSizing: 'border-box',
               outline: 'none',
-              fontWeight: '500'
+              cursor: 'pointer'
             }}
           />
+
+          {vistaPrevia && (
+            <div style={{ marginTop: '14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#000000' }}>
+                Previsualización de la foto seleccionada:
+              </p>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <img
+                  src={vistaPrevia}
+                  alt="Vista previa"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '220px',
+                    borderRadius: '10px',
+                    border: '1px solid #b38b6d',
+                    objectFit: 'cover'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleQuitarImagen}
+                  style={{
+                    display: 'block',
+                    margin: '8px auto 0 auto',
+                    padding: '6px 12px',
+                    backgroundColor: '#dc3545',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Quitar foto
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <button
