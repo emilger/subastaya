@@ -1,24 +1,32 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
-import './App.css'; // 👈 Asegura los estilos globales y el fondo completo
+import './App.css';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import { Billetera } from './components/Billetera';
 import CrearSubasta from './components/CrearSubasta';
 import MisSubastas from './components/MisSubastas';
+import { SubastaList } from './components/SubastaList';
+import { SubastaDetalle } from './components/SubastaDetalle';
 
-const TIMEOUT_MINUTOS = 5; 
+const TIMEOUT_MINUTOS = 5;
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [vistaActual, setVistaActual] = useState('catalogo');
   const [vistaAnterior, setVistaAnterior] = useState('catalogo');
+  const [subastaSeleccionada, setSubastaSeleccionada] = useState(null);
 
+  // Navegación fluida entre secciones
   const navegarA = (nuevaVista) => {
     setVistaAnterior(vistaActual);
     setVistaActual(nuevaVista);
+    if (nuevaVista !== 'catalogo') {
+      setSubastaSeleccionada(null);
+    }
   };
 
+  // Botón Volver para el formulario de subastas
   const handleVolver = () => {
     setVistaActual(vistaAnterior);
   };
@@ -58,41 +66,54 @@ export default function App() {
         <div>
           {/* Barra de navegación superior */}
           <Navbar onLogout={handleLogout} onNavigate={navegarA} />
-          
+
           <main style={{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* VISTA 1: Catálogo Principal */}
+            {/* VISTA 1: Catálogo y Detalle de Subasta */}
             {vistaActual === 'catalogo' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <h1 style={{ margin: 0, color: '#1a1a1a' }}>Catálogo de Subastas</h1>
-                  <button
-                    onClick={() => navegarA('publicar')}
-                    style={{
-                      padding: '12px 20px',
-                      backgroundColor: '#28a745',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '15px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(40, 167, 69, 0.3)'
-                    }}
-                  >
-                    ➕ Crear Subasta
-                  </button>
-                </div>
-                <p style={{ color: '#4a4a4a', textAlign: 'center', marginTop: '40px', fontSize: '18px' }}>
-                  Acá van a aparecer las tarjetas de los productos subastados...
-                </p>
+                {subastaSeleccionada ? (
+                  /* Detalle de la subasta seleccionada */
+                  <SubastaDetalle
+                    subasta={subastaSeleccionada}
+                    onVolver={() => setSubastaSeleccionada(null)}
+                  />
+                ) : (
+                  /* Catálogo general de productos */
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                      <h1 style={{ margin: 0, color: '#1a1a1a' }}>Catálogo de Subastas</h1>
+                      <button
+                        onClick={() => navegarA('publicar')}
+                        style={{
+                          padding: '12px 20px',
+                          backgroundColor: '#28a745',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '15px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(40, 167, 69, 0.3)'
+                        }}
+                      >
+                        ➕ Crear Subasta
+                      </button>
+                    </div>
+
+                    {/* Grilla de subastas traída de la API */}
+                    <SubastaList
+                      onSeleccionarSubasta={(subasta) => setSubastaSeleccionada(subasta)}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
             {/* VISTA 2: Formulario de Crear Subasta */}
             {vistaActual === 'publicar' && (
-              <CrearSubasta 
-                onSubastaCreada={() => navegarA('catalogo')} 
-                onVolver={handleVolver} 
+              <CrearSubasta
+                onSubastaCreada={() => navegarA('catalogo')}
+                onVolver={handleVolver}
               />
             )}
 
